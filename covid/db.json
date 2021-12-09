@@ -1,0 +1,45 @@
+{
+  "level": {
+    "state": 1
+  },
+  "cautions": [
+    {
+      "icon": "/assets/Precautions/Icones/Contact.svg",
+      "desc": "Pas de contact direct (on évite la bise et les poignées de main)"
+    },
+    {
+      "icon": "/assets/Precautions/Icones/Mains.svg",
+      "desc": "Désinfection régulière des mains au gel hydroalcoolique ou au savon"
+    },
+    {
+      "icon": "/assets/Precautions/Icones/Fenetres.svg",
+      "desc": "Ouvrir les fenêtres 10 min au-dessus de 800 PPM strict"
+    },
+    {
+      "icon": "/assets/Precautions/Icones/FermetureSalon.svg",
+      "desc": "Interdiction de se rendre dans l’espace salon"
+    },
+    {
+      "icon": "/assets/Precautions/Icones/Discord.svg",
+      "desc": "Pas de regroupement dans l’agence. Les réunions se font sur Discord"
+    },
+    {
+      "icon": "/assets/Precautions/Icones/Fete.svg",
+      "desc": "Annulation des soirées et évènements (sauf en extérieur avec le masque)"
+    }
+  ],
+  "usefulls": [
+    {
+      "desc": "Finissons-en avec les idées reçues concernant la transmission du COVID-19 ",
+      "link": "https://www.journalofhospitalinfection.com/article/S0195-6701(21)00007-4/fulltext"
+    },
+    {
+      "desc": "Vestibulum rutrum quam vitae fringilla tincidunt. Suspendisse nec tortor urna. Ut laoreet sodales nisi, quis iaculis nulla iaculis vitae. Donec sagittis faucibus lacus eget blandit. Mauris vitae ultricies metus, at condimentum nulla.",
+      "link": "https://www.loremipsum/dolorsitamet/documentpassionnant.pdf"
+    },
+    {
+      "desc": "Finissons-en avec les idées reçues concernant la transmission du COVID-19 ",
+      "link": "https://www.journalofhospitalinfection.com/article/S0195-6701(21)00007-4/fulltext"
+    }
+  ]
+}
