@@ -1,5 +1,5 @@
 <template>
-  <div
+  <section
     class="caution"
   >
     <img
@@ -9,7 +9,7 @@
     <p>
       {{ desc }}
     </p>
-  </div>
+  </section>
 </template>
 
 <script>
@@ -49,6 +49,26 @@ export default {
       text-align: left;
       color: #6E6E6E;
       line-height: 22px;
+      font-size: 16px;
+    }
+  }
+  @media screen and (min-width: 800px) {
+    .caution {
+      border: none;
+      border-bottom: solid 1px #B8C1C1;
+      border-radius: 0;
+      background-color: transparent;
+      margin: 0;
+      padding: 0;
+      p {
+        margin: 0;
+        text-align: left;
+        color: #6E6E6E;
+        line-height: 22px;
+        width: 100%;
+        font-size: 18px;
+        padding: 29px 0;
+      }
     }
   }
 </style>

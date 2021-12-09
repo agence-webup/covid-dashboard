@@ -3,7 +3,7 @@
     :href="link"
   >
     <div
-      class="caution"
+      class="usefull"
     >
       <p class="desc">
         {{ desc }}
@@ -32,7 +32,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  .caution {
+  .usefull {
     background-color: white;
     border-radius: 12px;
     border: solid 1px #B8C1C1;
@@ -50,6 +50,16 @@ export default {
     .link {
       text-decoration: underline;
       color: #1862AB;
+    }
+  }
+  @media screen and (min-width: 800px) {
+    .usefull {
+      border: none;
+      box-shadow: 0 6px 12px -12px #00000035;
+      transition: box-shadow .15s;
+      &:hover {
+      box-shadow: 0 15px 25px -12px #00000035;
+      }
     }
   }
 </style>

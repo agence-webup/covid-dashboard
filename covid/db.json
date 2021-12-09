@@ -4,26 +4,32 @@
   },
   "cautions": [
     {
+      "levelRequired": 1,
       "icon": "/assets/Precautions/Icones/Contact.svg",
       "desc": "Pas de contact direct (on évite la bise et les poignées de main)"
     },
     {
+      "levelRequired": 1,
       "icon": "/assets/Precautions/Icones/Mains.svg",
       "desc": "Désinfection régulière des mains au gel hydroalcoolique ou au savon"
     },
     {
+      "levelRequired": 2,
       "icon": "/assets/Precautions/Icones/Fenetres.svg",
       "desc": "Ouvrir les fenêtres 10 min au-dessus de 800 PPM strict"
     },
     {
+      "levelRequired": 2,
       "icon": "/assets/Precautions/Icones/FermetureSalon.svg",
       "desc": "Interdiction de se rendre dans l’espace salon"
     },
     {
+      "levelRequired": 3,
       "icon": "/assets/Precautions/Icones/Discord.svg",
       "desc": "Pas de regroupement dans l’agence. Les réunions se font sur Discord"
     },
     {
+      "levelRequired": 4,
       "icon": "/assets/Precautions/Icones/Fete.svg",
       "desc": "Annulation des soirées et évènements (sauf en extérieur avec le masque)"
     }
