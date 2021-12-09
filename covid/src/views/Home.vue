@@ -4,6 +4,7 @@
     class="home"
   >
     <header>
+      <span id="risk">{{ risk }} ⚠️</span>
       <picture>
         <source
           :srcset="'/assets/Desktop/Jauge/' + level + '.svg'"
@@ -19,9 +20,9 @@
         <h1>Niveau d’alerte lié à l’épidémie de Covid-19</h1>
         <span>{{ level }} / 4</span>
         <p>
-          Il y a 18% de risques que l’un de nous soit infecté
+          Il y a {{ risk }} de risques que l’un de nous soit infecté
           <br>
-          Taux d’incidence dans l’Aube : 9%
+          Taux d’incidence dans l’Aube : {{ cases }}
         </p>
       </div>
     </header>
@@ -67,6 +68,10 @@ export default {
       level: 1,
       cautions: [],
       usefulls: [],
+      covid: {},
+      covidIsRdy: false,
+      cases: '...',
+      risk: '...',
       usefullsSpoiler: true
     }
   },
@@ -102,6 +107,33 @@ export default {
       }).catch(e => {
         console.log(e)
       })
+      // COVID STATS FOR "Aube"
+      // GET DATE -7 days
+      var date = new Date()
+      date.setDate(date.getDate() - 7)
+      const formatDate = (date) => {
+        const formattedDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear()
+        return formattedDate
+      }
+      const lastWeek = formatDate(date)
+      axios.get('https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
+      }).then(response => {
+        console.log(response.data[9])
+        this.covid = response.data[9]
+        this.setCasesAndRisk()
+        this.covidIsRdy = true
+      }).catch(e => {
+        console.log(e)
+        axios.get('http://localhost:3000/covid', {
+        }).then(response => {
+          console.log(response.data[0])
+          this.covid = response.data[0]
+          this.setCasesAndRisk()
+          this.covidIsRdy = true
+        }).catch(e => {
+          console.log(e)
+        })
+      })
     },
     // USEFULLS SPOILER
     showUsefull () {
@@ -112,6 +144,21 @@ export default {
       } else {
         styleElem.innerHTML = '#dropDownTitle:after {transform: translateY(25%) rotateZ(-90deg);}'
       }
+    },
+    // CALC CASES & RISK
+    setCasesAndRisk () {
+      // '.pos' = Number of people declared positive (D-3 date of sampling)
+      // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)
+      // v2 = N in Aube
+      const v1 = this.covid.pos_7j / 3
+      const v2 = 300000 / 3
+
+      this.cases = Math.round(((v1 * 100 / v2) + Number.EPSILON) * 100) / 100 + '%'
+
+      // i = cases & N = peoples
+      const i = v1 * 100 / v2
+      const N = 12
+      this.risk = Math.round((Math.pow(1 - (1 - i / 100000), N) + Number.EPSILON) * 100) / 100 + '%'
     }
   }
 }
@@ -151,8 +198,20 @@ export default {
     transform: translateY(25%);
     transition: transform .15s;
   }
+  #risk {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    background-color: orangered;
+    padding: 0 5px 5px 5px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+  }
   // PC
   @media screen and (min-width: 800px) {
+    #risk {
+      display: none;
+    }
     .home {
       max-width: 788px;
       margin: auto;
@@ -186,7 +245,7 @@ export default {
           width: 100%;
           margin: 0;
         }
-        span {
+        > span {
           background-color: #FA5252;
           border-radius: 3px;
           padding: 6px 11px;
