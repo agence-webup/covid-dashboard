@@ -22,7 +22,7 @@
         <p>
           Il y a {{ risk }} de risques que l’un de nous soit infecté
           <br>
-          Taux d’incidence dans l’Aube : {{ cases }}
+          Taux d’incidence dans l’Aube : {{ cases }} / 100 000
         </p>
       </div>
     </header>
@@ -48,6 +48,13 @@
       :link="usefull.link"
     />
   </div>
+  <span
+    v-if="warningDisplay"
+    id="warningText"
+    @click="warningDisplay = false"
+  >
+    <p>Impossible d'obtenir les statistiques. Les chiffres utilisés sont donc des exemples à ne pas prendre en compte.</p>
+  </span>
 </template>
 
 <script>
@@ -72,7 +79,9 @@ export default {
       covidIsRdy: false,
       cases: '...',
       risk: '...',
-      usefullsSpoiler: true
+      usefullsSpoiler: true,
+      warningDisplay: false,
+      personInside: null
     }
   },
   computed: {
@@ -83,14 +92,6 @@ export default {
   },
   methods: {
     jsonGet () {
-      // GET LEVEL (0-4)
-      axios.get('http://localhost:3000/level', {
-      }).then(response => {
-        this.level = response.data.state
-        this.jsonIsLoaded += 1
-      }).catch(e => {
-        console.log(e)
-      })
       // GET CAUTIONS (icon + desc)
       axios.get('http://localhost:3000/cautions', {
       }).then(response => {
@@ -118,7 +119,6 @@ export default {
       const lastWeek = formatDate(date)
       axios.get('https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
       }).then(response => {
-        console.log(response.data[9])
         this.covid = response.data[9]
         this.setCasesAndRisk()
         this.covidIsRdy = true
@@ -126,10 +126,10 @@ export default {
         console.log(e)
         axios.get('http://localhost:3000/covid', {
         }).then(response => {
-          console.log(response.data[0])
           this.covid = response.data[0]
           this.setCasesAndRisk()
           this.covidIsRdy = true
+          this.warningDisplay = true
         }).catch(e => {
           console.log(e)
         })
@@ -150,15 +150,41 @@ export default {
       // '.pos' = Number of people declared positive (D-3 date of sampling)
       // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)
       // v2 = N in Aube
-      const v1 = this.covid.pos_7j / 3
-      const v2 = 300000 / 3
 
-      this.cases = Math.round(((v1 * 100 / v2) + Number.EPSILON) * 100) / 100 + '%'
+      const v1 = this.covid.pos_7j / 7 // divided by 7 to get an average per day
+      const v2 = 310000
 
-      // i = cases & N = peoples
-      const i = v1 * 100 / v2
-      const N = 12
-      this.risk = Math.round((Math.pow(1 - (1 - i / 100000), N) + Number.EPSILON) * 100) / 100 + '%'
+      const casesCalc = (v1 * 100000) / v2
+      this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
+
+      // SET LEVEL (0-4)
+      axios.get('http://localhost:3000/mainInfos', {
+      }).then(response => {
+        this.personInside = response.data.personInside
+        // i = cases & N = peoples
+        const i = ((v1 * 100000) / v2) * 2
+        const N = this.personInside
+        const mult = (1 - i / 100000) ** N
+        let riskCalc = Math.round((1 - mult) * 1000) / 10
+        if (riskCalc > 5) {
+          riskCalc = Math.round(riskCalc)
+        }
+        this.risk = riskCalc + '%'
+        // SET LEVEL
+        const rate = response.data.incidenceRateForEachLevel
+        if (casesCalc < rate[1]) {
+          this.level = 1
+        } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
+          this.level = 2
+        } else if (casesCalc >= rate[2] && casesCalc < rate[3]) {
+          this.level = 3
+        } else if (casesCalc >= rate[3]) {
+          this.level = 4
+        }
+        this.jsonIsLoaded += 1
+      }).catch(e => {
+        console.log(e)
+      })
     }
   }
 }
@@ -202,10 +228,28 @@ export default {
     position: absolute;
     top: 0;
     left: 20px;
-    background-color: orangered;
+    background-color: #FA5252;
+    color: white;
+    font-weight: bold;
     padding: 0 5px 5px 5px;
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px;
+  }
+  #warningText {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    background-color: #FA5252;
+    width: 100%;
+    cursor: pointer;
+    p {
+      margin: 0;
+      color: white;
+      font-weight: bold;
+      text-align: left;
+      padding: 10px 20px;
+      font-size: .8em;
+    }
   }
   // PC
   @media screen and (min-width: 800px) {

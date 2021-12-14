@@ -1,6 +1,12 @@
 {
-  "level": {
-    "state": 1
+  "mainInfos": {
+    "personInside": 12,
+    "incidenceRateForEachLevel": [
+      20,
+      30,
+      40,
+      50
+    ]
   },
   "cautions": [
     {
