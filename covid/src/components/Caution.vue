@@ -3,6 +3,7 @@
     class="caution"
   >
     <img
+      v-if="icon != ''"
       :src="icon"
       :alt="desc"
     >
@@ -36,9 +37,10 @@ export default {
     color: #B8C1C1;
     padding: 23px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin: 20px 0;
+    flex: 100%;
     img {
       width: 34px;
       height: 34px;

@@ -1,18 +1,15 @@
 <template>
-  <div
-    v-if="jsonIsLoaded == 3"
-    class="home"
-  >
+  <div class="home">
     <header>
       <span id="risk">{{ risk }} ⚠️</span>
       <picture>
         <source
-          :srcset="'/assets/Desktop/Jauge/' + level + '.svg'"
+          :srcset="'./assets/Desktop/Jauge/' + level + '.svg'"
           media="(min-width: 800px)"
         >
         <img
           class="tacometer"
-          :src="'/assets/Mobile/Jauge/' + level + '.svg'"
+          :src="'./assets/Mobile/Jauge/' + level + '.svg'"
           :alt="'Danger de niveau ' + level"
         >
       </picture>
@@ -95,7 +92,7 @@ export default {
       // GET CAUTIONS (icon + desc)
       axios.get('http://localhost:3000/cautions', {
       }).then(response => {
-        this.cautions = response.data
+        this.cautions = response.data.data
         this.jsonIsLoaded += 1
       }).catch(e => {
         console.log(e)
@@ -103,7 +100,7 @@ export default {
       // GET USEFULLS (desc + link)
       axios.get('http://localhost:3000/usefulls', {
       }).then(response => {
-        this.usefulls = response.data
+        this.usefulls = response.data.data
         this.jsonIsLoaded += 1
       }).catch(e => {
         console.log(e)
@@ -165,20 +162,17 @@ export default {
         const i = ((v1 * 100000) / v2) * 2
         const N = this.personInside
         const mult = (1 - i / 100000) ** N
-        let riskCalc = Math.round((1 - mult) * 1000) / 10
-        if (riskCalc > 5) {
-          riskCalc = Math.round(riskCalc)
-        }
+        const riskCalc = Math.round((1 - mult) * 1000) / 10
         this.risk = riskCalc + '%'
         // SET LEVEL
-        const rate = response.data.incidenceRateForEachLevel
-        if (casesCalc < rate[1]) {
+        const rate = response.data.incidencePlageForEachLevel
+        if (casesCalc < rate[0]) {
           this.level = 1
-        } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
+        } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
           this.level = 2
-        } else if (casesCalc >= rate[2] && casesCalc < rate[3]) {
+        } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
           this.level = 3
-        } else if (casesCalc >= rate[3]) {
+        } else if (casesCalc >= rate[2]) {
           this.level = 4
         }
         this.jsonIsLoaded += 1
@@ -250,6 +244,9 @@ export default {
       padding: 10px 20px;
       font-size: .8em;
     }
+  }
+  .loadingText {
+    margin-top: 40vh;
   }
   // PC
   @media screen and (min-width: 800px) {
