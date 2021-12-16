@@ -1,5 +1,5 @@
 <template>
-  <div v-if="jsonIsLoaded == 3">
+  <div>
     <div
       v-show="popupHeader"
       class="popupFrame"
@@ -240,7 +240,6 @@
     </div>
   </div>
   <div
-    v-if="jsonIsLoaded == 3"
     class="home"
     :style="makeHomeBlur"
   >
@@ -321,12 +320,6 @@
       @click="setupNewItem('usefulls'); popup = true"
     />
   </div>
-  <div
-    v-else
-    class="loadingText"
-  >
-    Chargement...
-  </div>
   <span
     v-if="warningDisplay"
     id="warningText"
@@ -363,7 +356,7 @@ export default {
       usefullsSpoiler: true,
       warningDisplay: false,
       personInside: null,
-      plagePerLevel: null,
+      plagePerLevel: [0, 0, 0],
       popup: false,
       popupHeader: false,
       popupAddUsefull: {
@@ -400,6 +393,7 @@ export default {
   },
   mounted () {
     this.jsonGet()
+    this.getCovidApi()
   },
   methods: {
     addNewItem (target) {
@@ -408,7 +402,9 @@ export default {
         data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
         const newData = { data: data }
         axios.put('http://localhost:3000/usefulls', newData)
-          .then()
+          .then(function (e) {
+            this.jsonGet()
+          })
           .catch(function (e) {
             console.log(e.response)
           })
@@ -417,7 +413,9 @@ export default {
         data.push({ desc: this.popupAddCaution.desc, levelRequired: this.popupAddCaution.levelRequired, icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
         const newData = { data: data }
         axios.put('http://localhost:3000/cautions', newData)
-          .then()
+          .then(function (e) {
+            this.jsonGet()
+          })
           .catch(function (e) {
             console.log(e.response)
           })
@@ -427,14 +425,18 @@ export default {
       data.splice(id, 1)
       const newData = { data: data }
       axios.put('http://localhost:3000/' + target, newData)
-        .then()
+        .then(function (e) {
+          this.jsonGet()
+        })
         .catch(function (e) {
           console.log(e.response)
         })
     },
     updateDB (target, data) {
       axios.put('http://localhost:3000/' + target, data)
-        .then()
+        .then(function (e) {
+          this.jsonGet()
+        })
         .catch(function (e) {
           console.log(e.response)
         })
@@ -471,6 +473,8 @@ export default {
       }).catch(e => {
         console.log(e)
       })
+    },
+    getCovidApi () {
       // COVID STATS FOR "Aube"
       // GET DATE -7 days
       var date = new Date()
