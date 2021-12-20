@@ -43,7 +43,7 @@
         </div>
         <div
           class="popupValid"
-          @click="updateDB('mainInfos', { personInside: personInside, incidencePlageForEachLevel: plagePerLevel }); popupHeader = false; popup = false"
+          @click="updateDB('mainInfos', { personInside: personInside, incidencePlageForEachLevel: plagePerLevel }); popupHeader = false; popup = false;setCasesAndRisk()"
         >
           Confirmer
         </div>
@@ -244,15 +244,14 @@
     :style="makeHomeBlur"
   >
     <header @click="popupHeader = true; popup = true">
-      <span id="risk">{{ risk }} ⚠️</span>
       <picture>
         <source
-          :srcset="'./assets/Desktop/Jauge/' + level + '.svg'"
+          :srcset="'/assets/Desktop/Jauge/' + level + '.svg'"
           media="(min-width: 800px)"
         >
         <img
           class="tacometer"
-          :src="'./assets/Mobile/Jauge/' + level + '.svg'"
+          :src="'/assets/Mobile/Jauge/' + level + '.svg'"
           :alt="'Danger de niveau ' + level"
         >
       </picture>
@@ -266,6 +265,12 @@
         </p>
       </div>
     </header>
+    <p
+      id="riskBanner"
+      :style="riskBanner"
+    >
+      <b>{{ risk }}</b> Risque de transmission dans l'agence
+    </p>
     <h2>Précautions à observer</h2>
     <div
       v-for="(caution, i) in cautions"
@@ -345,17 +350,16 @@ export default {
   },
   data () {
     return {
-      jsonIsLoaded: 0,
+      fullData: null,
       level: 1,
       cautions: [],
       usefulls: [],
       covid: {},
-      covidIsRdy: false,
       cases: '...',
       risk: '...',
       usefullsSpoiler: true,
       warningDisplay: false,
-      personInside: null,
+      personInside: 0,
       plagePerLevel: [0, 0, 0],
       popup: false,
       popupHeader: false,
@@ -381,6 +385,19 @@ export default {
     }
   },
   computed: {
+    riskBanner () {
+      if (this.level === 1) {
+        return 'background-color: #D3F9D8;border: 1px #40C057 solid;color: #0C5A16;'
+      } else if (this.level === 2) {
+        return 'background-color: #FEEC98;border: 1px #FAB004 solid;color: #655301;'
+      } else if (this.level === 3) {
+        return 'background-color: #FEE8CC;border: 1px #FC7E15 solid;color: #643902;'
+      } else if (this.level === 4) {
+        return 'background-color: #FEE3E3;border: 1px #F03E3E solid;color: #950404;'
+      } else {
+        return 'background-color: #eee;border: 1px #777 solid;color: #222;'
+      }
+    },
     makeHomeBlur () {
       if (this.popup === true) {
         return 'filter: blur(5px)'
@@ -398,47 +415,46 @@ export default {
   methods: {
     addNewItem (target) {
       if (target === 'usefulls') {
-        const data = this.usefulls
-        data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
-        const newData = { data: data }
-        axios.put('http://localhost:3000/usefulls', newData)
-          .then(function (e) {
-            this.jsonGet()
-          })
+        this.fullData.usefulls.data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
+        axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
           .catch(function (e) {
             console.log(e.response)
           })
       } else if (target === 'cautions') {
-        const data = this.cautions
-        data.push({ desc: this.popupAddCaution.desc, levelRequired: this.popupAddCaution.levelRequired, icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
-        const newData = { data: data }
-        axios.put('http://localhost:3000/cautions', newData)
-          .then(function (e) {
-            this.jsonGet()
-          })
+        this.fullData.cautions.data.push({ desc: this.popupAddCaution.desc, levelRequired: this.popupAddCaution.levelRequired, icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
+        axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
           .catch(function (e) {
             console.log(e.response)
           })
       }
     },
     removeItem (id, data, target) {
-      data.splice(id, 1)
-      const newData = { data: data }
-      axios.put('http://localhost:3000/' + target, newData)
-        .then(function (e) {
-          this.jsonGet()
-        })
+      console.log(id)
+      console.log(data)
+      console.log(target)
+      if (target === 'cautions') {
+        data.splice(id, 1)
+        this.fullData.cautions = { data: data }
+      } else if (target === 'usefulls') {
+        data.splice(id, 1)
+        this.fullData.usefulls = { data: data }
+      }
+      axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
         .catch(function (e) {
           console.log(e.response)
         })
     },
     updateDB (target, data) {
-      axios.put('http://localhost:3000/' + target, data)
-        .then(function (e) {
-          this.jsonGet()
-        })
+      if (target === 'mainInfos') {
+        this.fullData.mainInfos = data
+      } else if (target === 'cautions') {
+        this.fullData.cautions = data
+      } else if (target === 'usefulls') {
+        this.fullData.usefulls = data
+      }
+      axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
         .catch(function (e) {
-          console.log(e.response)
+          console.log(e)
         })
     },
     setupCautionPopup (i) {
@@ -458,18 +474,12 @@ export default {
     },
     jsonGet () {
       // GET CAUTIONS (icon + desc)
-      axios.get('http://localhost:3000/cautions', {
-      }).then(response => {
-        this.cautions = response.data.data
-        this.jsonIsLoaded += 1
-      }).catch(e => {
-        console.log(e)
-      })
       // GET USEFULLS (desc + link)
-      axios.get('http://localhost:3000/usefulls', {
+      axios.get('/db.json', {
       }).then(response => {
-        this.usefulls = response.data.data
-        this.jsonIsLoaded += 1
+        this.fullData = response.data
+        this.cautions = response.data.cautions.data
+        this.usefulls = response.data.usefulls.data
       }).catch(e => {
         console.log(e)
       })
@@ -484,18 +494,28 @@ export default {
         return formattedDate
       }
       const lastWeek = formatDate(date)
-      axios.get('https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
+      axios.get('/quarry.php?link=' + 'https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
+        headers: { 'Access-Control-Allow-Origin': '*', crossDomain: true }
       }).then(response => {
-        this.covid = response.data[9]
-        this.setCasesAndRisk()
-        this.covidIsRdy = true
+        if (response.data.toString().startsWith('<?php')) {
+          axios.get('/db.json', {
+          }).then(response => {
+            this.covid = response.data.covid[0]
+            this.setCasesAndRisk()
+            this.warningDisplay = true
+          }).catch(e => {
+            console.log(e)
+          })
+        } else {
+          this.covid = response.data[9]
+          this.setCasesAndRisk()
+        }
       }).catch(e => {
         console.log(e)
-        axios.get('http://localhost:3000/covid', {
+        axios.get('/db.json', {
         }).then(response => {
-          this.covid = response.data[0]
+          this.covid = response.data.covid[0]
           this.setCasesAndRisk()
-          this.covidIsRdy = true
           this.warningDisplay = true
         }).catch(e => {
           console.log(e)
@@ -525,9 +545,9 @@ export default {
       this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
 
       // SET LEVEL (0-4)
-      axios.get('http://localhost:3000/mainInfos', {
+      axios.get('/db.json', {
       }).then(response => {
-        this.personInside = response.data.personInside
+        this.personInside = response.data.mainInfos.personInside
         // i = cases & N = peoples
         const i = ((v1 * 100000) / v2) * 2
         const N = this.personInside
@@ -535,7 +555,7 @@ export default {
         const riskCalc = Math.round((1 - mult) * 1000) / 10
         this.risk = riskCalc + '%'
         // SET LEVEL
-        this.plagePerLevel = response.data.incidencePlageForEachLevel
+        this.plagePerLevel = response.data.mainInfos.incidencePlageForEachLevel
         if (casesCalc < this.plagePerLevel[0]) {
           this.level = 1
         } else if (casesCalc >= this.plagePerLevel[0] && casesCalc < this.plagePerLevel[1]) {
@@ -545,7 +565,6 @@ export default {
         } else if (casesCalc >= this.plagePerLevel[2]) {
           this.level = 4
         }
-        this.jsonIsLoaded += 1
       }).catch(e => {
         console.log(e)
       })
@@ -674,16 +693,16 @@ export default {
     transform: translateY(25%);
     transition: transform .15s;
   }
-  #risk {
-    position: absolute;
-    top: 0;
-    left: 20px;
-    background-color: #FA5252;
-    color: white;
-    font-weight: bold;
-    padding: 0 5px 5px 5px;
-    border-bottom-right-radius: 3px;
-    border-bottom-left-radius: 3px;
+  #riskBanner {
+    text-align: left;
+    padding: 10px 20px;
+    margin-top: 74.5px;
+    flex: 100%;
+    border-radius: 4px;
+    font-size: 15px;
+    b {
+      margin-right: 9px;
+    }
   }
   #warningText {
     position: fixed;
@@ -745,7 +764,7 @@ export default {
         cursor: pointer;
       }
     }
-    #risk {
+    #riskBanner {
       display: none;
     }
     .home {

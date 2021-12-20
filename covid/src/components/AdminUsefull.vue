@@ -43,7 +43,7 @@ export default {
     word-wrap: break-word;
     line-height: 24px;
     font-size: 16px;
-    width: 80vw;
+    width: calc(100vw - 88px);
     .desc {
       color: #4B4545;
       text-decoration: none;
@@ -51,6 +51,8 @@ export default {
     .link {
       text-decoration: underline;
       color: #1862AB;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
     }
   }
   @media screen and (min-width: 800px) {
