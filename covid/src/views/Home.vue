@@ -1,15 +1,17 @@
 <template>
-  <div class="home">
+  <div
+    class="home"
+    @keydown="console.log('test')"
+  >
     <header>
-      <span id="risk">{{ risk }} ⚠️</span>
       <picture>
         <source
-          :srcset="'./assets/Desktop/Jauge/' + level + '.svg'"
+          :srcset="'/assets/Desktop/Jauge/' + level + '.svg'"
           media="(min-width: 800px)"
         >
         <img
           class="tacometer"
-          :src="'./assets/Mobile/Jauge/' + level + '.svg'"
+          :src="'/assets/Mobile/Jauge/' + level + '.svg'"
           :alt="'Danger de niveau ' + level"
         >
       </picture>
@@ -23,7 +25,15 @@
         </p>
       </div>
     </header>
-    <h2>Précautions à observer</h2>
+    <p
+      id="riskBanner"
+      :style="riskBanner"
+    >
+      <b>{{ risk }}</b> Risque de transmission dans l'agence
+    </p>
+    <h2 class="marginTop50">
+      Précautions à observer
+    </h2>
     <Caution
       v-for="(caution, i) in cautions"
       v-show="caution.levelRequired <= level"
@@ -68,12 +78,10 @@ export default {
   },
   data () {
     return {
-      jsonIsLoaded: 0,
       level: 1,
       cautions: [],
       usefulls: [],
       covid: {},
-      covidIsRdy: false,
       cases: '...',
       risk: '...',
       usefullsSpoiler: true,
@@ -82,7 +90,19 @@ export default {
     }
   },
   computed: {
-
+    riskBanner () {
+      if (this.level === 1) {
+        return 'background-color: #D3F9D8;border: 1px #40C057 solid;color: #0C5A16;'
+      } else if (this.level === 2) {
+        return 'background-color: #FEEC98;border: 1px #FAB004 solid;color: #655301;'
+      } else if (this.level === 3) {
+        return 'background-color: #FEE8CC;border: 1px #FC7E15 solid;color: #643902;'
+      } else if (this.level === 4) {
+        return 'background-color: #FEE3E3;border: 1px #F03E3E solid;color: #950404;'
+      } else {
+        return 'background-color: #eee;border: 1px #777 solid;color: #222;'
+      }
+    }
   },
   mounted () {
     this.jsonGet()
@@ -90,18 +110,16 @@ export default {
   methods: {
     jsonGet () {
       // GET CAUTIONS (icon + desc)
-      axios.get('http://localhost:3000/cautions', {
+      axios.get('/db.json', {
       }).then(response => {
-        this.cautions = response.data.data
-        this.jsonIsLoaded += 1
+        this.cautions = response.data.cautions.data
       }).catch(e => {
         console.log(e)
       })
       // GET USEFULLS (desc + link)
-      axios.get('http://localhost:3000/usefulls', {
+      axios.get('/db.json', {
       }).then(response => {
-        this.usefulls = response.data.data
-        this.jsonIsLoaded += 1
+        this.usefulls = response.data.usefulls.data
       }).catch(e => {
         console.log(e)
       })
@@ -114,18 +132,28 @@ export default {
         return formattedDate
       }
       const lastWeek = formatDate(date)
-      axios.get('https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
+      axios.get('/quarry.php?link=' + 'https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
+        headers: { 'Access-Control-Allow-Origin': '*', crossDomain: true }
       }).then(response => {
-        this.covid = response.data[9]
-        this.setCasesAndRisk()
-        this.covidIsRdy = true
+        if (response.data.toString().startsWith('<?php')) {
+          axios.get('/db.json', {
+          }).then(response => {
+            this.covid = response.data.covid[0]
+            this.setCasesAndRisk()
+            this.warningDisplay = true
+          }).catch(e => {
+            console.log(e)
+          })
+        } else {
+          this.covid = response.data[9]
+          this.setCasesAndRisk()
+        }
       }).catch(e => {
         console.log(e)
-        axios.get('http://localhost:3000/covid', {
+        axios.get('/db.json', {
         }).then(response => {
-          this.covid = response.data[0]
+          this.covid = response.data.covid[0]
           this.setCasesAndRisk()
-          this.covidIsRdy = true
           this.warningDisplay = true
         }).catch(e => {
           console.log(e)
@@ -155,9 +183,9 @@ export default {
       this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
 
       // SET LEVEL (0-4)
-      axios.get('http://localhost:3000/mainInfos', {
+      axios.get('/db.json', {
       }).then(response => {
-        this.personInside = response.data.personInside
+        this.personInside = response.data.mainInfos.personInside
         // i = cases & N = peoples
         const i = ((v1 * 100000) / v2) * 2
         const N = this.personInside
@@ -165,7 +193,7 @@ export default {
         const riskCalc = Math.round((1 - mult) * 1000) / 10
         this.risk = riskCalc + '%'
         // SET LEVEL
-        const rate = response.data.incidencePlageForEachLevel
+        const rate = response.data.mainInfos.incidencePlageForEachLevel
         if (casesCalc < rate[0]) {
           this.level = 1
         } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
@@ -175,7 +203,6 @@ export default {
         } else if (casesCalc >= rate[2]) {
           this.level = 4
         }
-        this.jsonIsLoaded += 1
       }).catch(e => {
         console.log(e)
       })
@@ -202,6 +229,9 @@ export default {
     font-size: 24px;
     text-align: left;
   }
+  .marginTop50 {
+    margin-top: 50px;
+  }
   header div {
     display: none;
   }
@@ -218,16 +248,16 @@ export default {
     transform: translateY(25%);
     transition: transform .15s;
   }
-  #risk {
-    position: absolute;
-    top: 0;
-    left: 20px;
-    background-color: #FA5252;
-    color: white;
-    font-weight: bold;
-    padding: 0 5px 5px 5px;
-    border-bottom-right-radius: 3px;
-    border-bottom-left-radius: 3px;
+  #riskBanner {
+    text-align: left;
+    padding: 10px 20px;
+    margin-top: 74.5px;
+    flex: 100%;
+    border-radius: 4px;
+    font-size: 15px;
+    b {
+      margin-right: 9px;
+    }
   }
   #warningText {
     position: fixed;
@@ -250,7 +280,7 @@ export default {
   }
   // PC
   @media screen and (min-width: 800px) {
-    #risk {
+    #riskBanner {
       display: none;
     }
     .home {
