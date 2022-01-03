@@ -173,10 +173,10 @@ export default {
     // CALC CASES & RISK
     setCasesAndRisk () {
       // '.pos' = Number of people declared positive (D-3 date of sampling)
-      // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)  !!
+      // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)
       // v2 = N in Aube
 
-      const v1 = this.covid.pos_7j * 2 // corrected: *2
+      const v1 = this.covid.pos_7j / 7 // divided by 7 to get an average per day
       const v2 = 310000
 
       const casesCalc = (v1 * 100000) / v2
@@ -196,16 +196,12 @@ export default {
         const rate = response.data.mainInfos.incidencePlageForEachLevel
         if (casesCalc < rate[0]) {
           this.level = 1
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
         } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
           this.level = 2
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
         } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
           this.level = 3
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
         } else if (casesCalc >= rate[2]) {
           this.level = 4
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
         }
       }).catch(e => {
         console.log(e)

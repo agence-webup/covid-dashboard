@@ -83,35 +83,6 @@
       </div>
     </div>
     <div
-      v-if="popupPassword.state"
-      class="popupFrame"
-    >
-      <div
-        class="popupContent"
-      >
-        <label for="popupPassword">{{ popupPassword.text }}</label>
-        <input
-          id="popupMinLevelRequired"
-          v-model="password"
-          type="password"
-        >
-      </div>
-      <div class="popupButton">
-        <div
-          class="popupCancel"
-          @click="$router.push('/')"
-        >
-          Annuler
-        </div>
-        <div
-          class="popupValid"
-          @click="checkPassword()"
-        >
-          Confirmer
-        </div>
-      </div>
-    </div>
-    <div
       v-if="popupUsefulls.state"
       class="popupFrame"
     >
@@ -201,14 +172,54 @@
           type="number"
           placeholder="1"
         >
-        <div
-          class="simpleFlex radioCenter"
-        >
+        <div class="simpleFlex radioCenter">
           <Radio
-            v-for="(icon, i) in icons"
-            :key="i"
-            :data="icon"
-            @click="popupAddCaution.icon = icon"
+            :data="'Clients'"
+            @click="popupAddCaution.icon = 'Clients'"
+          />
+          <Radio
+            :data="'Contact'"
+            @click="popupAddCaution.icon = 'Contact'"
+          />
+          <Radio
+            :data="'Cuisine'"
+            @click="popupAddCaution.icon = 'Cuisine'"
+          />
+          <Radio
+            :data="'Discord'"
+            @click="popupAddCaution.icon = 'Discord'"
+          />
+          <Radio
+            :data="'Fenetres'"
+            @click="popupAddCaution.icon = 'Fenetres'"
+          />
+          <Radio
+            :data="'FermetureSalon'"
+            @click="popupAddCaution.icon = 'FermetureSalon'"
+          />
+          <Radio
+            :data="'Fete'"
+            @click="popupAddCaution.icon = 'Fete'"
+          />
+          <Radio
+            :data="'Mains'"
+            @click="popupAddCaution.icon = 'Mains'"
+          />
+          <Radio
+            :data="'Masque'"
+            @click="popupAddCaution.icon = 'Masque'"
+          />
+          <Radio
+            :data="'Reunion'"
+            @click="popupAddCaution.icon = 'Reunion'"
+          />
+          <Radio
+            :data="'Salon'"
+            @click="popupAddCaution.icon = 'Salon'"
+          />
+          <Radio
+            :data="'Teletravail'"
+            @click="popupAddCaution.icon = 'Teletravail'"
           />
         </div>
       </div>
@@ -319,7 +330,7 @@
     id="warningText"
     @click="warningDisplay = false"
   >
-    <p>La page Admin n'est pas utilisable en local. Impossible d'obtenir les statistiques. Les chiffres utilisés sont donc des exemples à ne pas prendre en compte.</p>
+    <p>Impossible d'obtenir les statistiques. Les chiffres utilisés sont donc des exemples à ne pas prendre en compte.</p>
   </span>
 </template>
 
@@ -339,13 +350,6 @@ export default {
   },
   data () {
     return {
-      password: '',
-      icons: [
-        'Clients', 'Contact', 'Cuisine',
-        'Discord', 'Fenetres', 'FermetureSalon',
-        'Fete', 'Mains', 'Masque',
-        'Reunion', 'Salon', 'Teletravail'
-      ],
       fullData: null,
       level: 1,
       cautions: [],
@@ -357,7 +361,7 @@ export default {
       warningDisplay: false,
       personInside: 0,
       plagePerLevel: [0, 0, 0],
-      popup: true,
+      popup: false,
       popupHeader: false,
       popupAddUsefull: {
         state: false,
@@ -373,10 +377,6 @@ export default {
       popupCautions: {
         state: false,
         id: null
-      },
-      popupPassword: {
-        state: true,
-        text: 'Mot de passe :'
       },
       popupUsefulls: {
         state: false,
@@ -413,28 +413,16 @@ export default {
     this.getCovidApi()
   },
   methods: {
-    checkPassword () {
-      axios.get('/password.php?password=' + this.password)
-        .then((e) => {
-          if (e.data === 'ok') {
-            this.popupPassword.state = false
-            this.popup = false
-          } else {
-            this.password = ''
-            this.popupPassword.text = 'Mot de passe incorrect, essayez à nouveau :'
-          }
-        })
-    },
     addNewItem (target) {
       if (target === 'usefulls') {
         this.fullData.usefulls.data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
-        axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
+        axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
           .catch(function (e) {
             console.log(e.response)
           })
       } else if (target === 'cautions') {
         this.fullData.cautions.data.push({ desc: this.popupAddCaution.desc, levelRequired: this.popupAddCaution.levelRequired, icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
-        axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
+        axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
           .catch(function (e) {
             console.log(e.response)
           })
@@ -451,7 +439,7 @@ export default {
         data.splice(id, 1)
         this.fullData.usefulls = { data: data }
       }
-      axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
+      axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
         .catch(function (e) {
           console.log(e.response)
         })
@@ -464,7 +452,7 @@ export default {
       } else if (target === 'usefulls') {
         this.fullData.usefulls = data
       }
-      axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
+      axios.get('/jsonEditer.php?data=' + JSON.stringify(this.fullData))
         .catch(function (e) {
           console.log(e)
         })
@@ -550,7 +538,7 @@ export default {
       // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)
       // v2 = N in Aube
 
-      const v1 = this.covid.pos_7j * 2 // corrected: *2
+      const v1 = this.covid.pos_7j / 7 // divided by 7 to get an average per day
       const v2 = 310000
 
       const casesCalc = (v1 * 100000) / v2
@@ -570,16 +558,12 @@ export default {
         this.plagePerLevel = response.data.mainInfos.incidencePlageForEachLevel
         if (casesCalc < this.plagePerLevel[0]) {
           this.level = 1
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
         } else if (casesCalc >= this.plagePerLevel[0] && casesCalc < this.plagePerLevel[1]) {
           this.level = 2
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
         } else if (casesCalc >= this.plagePerLevel[1] && casesCalc < this.plagePerLevel[2]) {
           this.level = 3
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
         } else if (casesCalc >= this.plagePerLevel[2]) {
           this.level = 4
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
         }
       }).catch(e => {
         console.log(e)
