@@ -2,9 +2,9 @@
   "mainInfos": {
     "personInside": 12,
     "incidencePlageForEachLevel": [
-      25,
-      40,
-      55
+      200,
+      300,
+      400
     ]
   },
   "cautions": {
@@ -60,27 +60,28 @@
   "covid": [
     {
       "dep": 10,
-      "date": "2021-12-02",
+      "date": "2021-12-27",
       "reg": 44,
       "lib_dep": "Aube",
       "lib_reg": "Grand Est",
-      "tx_pos": 6.3389235333293,
-      "tx_incid": 337.843288470412,
-      "TO": 0.350537634408602,
+      "tx_pos": 8.47413159827894,
+      "tx_incid": 521.124079159232,
+      "TO": 0.640860215053763,
       "R": null,
-      "hosp": 25,
-      "rea": 4,
-      "rad": 2081,
-      "dchosp": 460,
-      "reg_rea": 163,
-      "incid_hosp": 4,
+      "hosp": 54,
+      "rea": 11,
+      "rad": 2144,
+      "dchosp": 474,
+      "reg_rea": 298,
+      "incid_hosp": 3,
       "incid_rea": 1,
-      "incid_rad": 5,
+      "incid_rad": 0,
       "incid_dchosp": 2,
-      "reg_incid_rea": 13,
-      "pos": 192,
-      "pos_7j": 1047,
+      "reg_incid_rea": 24,
+      "pos": 547,
+      "pos_7j": 1615,
       "cv_dose1": null
     }
-  ]
+  ],
+  "password": ""
 }
