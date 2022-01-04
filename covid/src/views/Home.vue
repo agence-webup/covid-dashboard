@@ -36,7 +36,7 @@
     </h2>
     <Caution
       v-for="(caution, i) in cautions"
-      v-show="showCaution(caution.levelRequired)"
+      v-show="caution.levelRequired <= level"
       :key="i"
       :icon="caution.icon"
       :desc="caution.desc"
@@ -54,13 +54,6 @@
       :desc="usefull.desc"
       :link="usefull.link"
     />
-    <!-- <div id="myChartFrame">
-      <span v-if="!chart.loading.ready">{{ chart.loading.state }}</span>
-      <canvas
-        v-show="chart.loading.ready"
-        id="myChart"
-      />
-    </div> -->
   </div>
   <span
     v-if="warningDisplay"
@@ -76,7 +69,6 @@
 import Caution from '@/components/Caution.vue'
 import Usefull from '@/components/Usefull.vue'
 import axios from 'axios'
-// import Chart from 'chart.js/auto'
 
 export default {
   name: 'Home',
@@ -94,16 +86,7 @@ export default {
       risk: '...',
       usefullsSpoiler: true,
       warningDisplay: false,
-      personInside: null,
-      chart: {
-        date: [],
-        pos_7j: [],
-        color: [],
-        loading: {
-          ready: false,
-          state: '0%'
-        }
-      }
+      personInside: null
     }
   },
   computed: {
@@ -123,98 +106,8 @@ export default {
   },
   mounted () {
     this.jsonGet()
-    // setTimeout(() => { this.setupChart() }, 2500)
   },
   methods: {
-    // createChart () {
-    //   /* eslint-disable no-new */
-    //   const ctx = document.getElementById('myChart').getContext('2d')
-    //   new Chart(ctx, {
-    //     type: 'line',
-    //     data: {
-    //       labels: this.chart.date,
-    //       datasets: [{
-    //         label: "Cas positifs dans l'Aube",
-    //         data: this.chart.pos_7j,
-    //         backgroundColor: [
-    //           'rgba(250, 82, 82, 0.2)'
-    //         ],
-    //         borderColor: [
-    //           'rgba(250, 82, 82, .8)'
-    //         ],
-    //         borderWidth: 2
-    //       }]
-    //     },
-    //     options: {
-    //       elements: {
-    //         line: {
-    //           tension: 0 // 0.2 for curve
-    //         }
-    //       },
-    //       scales: {
-    //         y: {
-    //           beginAtZero: true
-    //         }
-    //       },
-    //       fill: 'start'
-    //     }
-    //   })
-    // },
-    // setupChart () {
-    //   var pastDate = null
-    //   var axiosCount = 0
-    //   for (var i = 0; i < 25; i++) {
-    //     var date = new Date()
-    //     date.setDate(date.getDate() - 7 - i)
-    //     const formatDate = (date) => {
-    //       const formattedDate = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear()
-    //       return formattedDate
-    //     }
-    //     pastDate = formatDate(date)
-    //     this.chart.date.unshift(pastDate)
-
-    //     axios.get('/quarry.php?link=' + 'https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + pastDate, {
-    //       headers: { 'Access-Control-Allow-Origin': '*', crossDomain: true }
-    //     }).then(response => {
-    //       if (response.data.toString().startsWith('<?php')) {
-    //         this.chart.pos_7j.unshift(0)
-    //         axiosCount++
-    //         this.chart.loading.state = axiosCount * 4 + '%'
-    //         if (axiosCount === 25) {
-    //           this.chart.loading.ready = true
-    //           this.createChart()
-    //         }
-    //       } else {
-    //         this.chart.pos_7j.unshift(response.data[9].pos_7j)
-    //         axiosCount++
-    //         this.chart.loading.state = axiosCount * 4 + '%'
-    //         if (axiosCount === 25) {
-    //           this.chart.loading.ready = true
-    //           this.createChart()
-    //         }
-    //       }
-    //     }).catch(e => {
-    //       console.log(e)
-    //       axiosCount++
-    //       this.chart.loading.state = axiosCount * 4 + '%'
-    //       if (axiosCount === 25) {
-    //         this.chart.loading.ready = true
-    //         this.createChart()
-    //       }
-    //     })
-    //   }
-    // },
-    showCaution (x) {
-      if (this.level === 1 && x === 1) {
-        return true
-      } else if (this.level === 2 && x <= 2) {
-        return true
-      } else if (this.level === 3 && (x === 1 || x === 3)) {
-        return true
-      } else if (this.level === 4 && x === 4) {
-        return true
-      }
-    },
     jsonGet () {
       // GET CAUTIONS (icon + desc)
       axios.get('/db.json', {
@@ -329,9 +222,6 @@ export default {
     font-family: 'Roboto', sans-serif;
     font-weight: 400;
   }
-  #myChartFrame {
-    margin-bottom: 30px;
-  }
   .tacometer {
     margin: 80px 0 20px 0;
     height: 217.15px;
@@ -396,11 +286,6 @@ export default {
   @media screen and (min-width: 800px) {
     #riskBanner {
       display: none;
-    }
-    #myChartFrame {
-      width: 788px;
-      margin: auto;
-      margin-top: 50px;
     }
     .home {
       max-width: 788px;

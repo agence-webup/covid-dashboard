@@ -557,7 +557,7 @@ export default {
       const casesCalc = (v1 * 100000) / v2
       this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
 
-      // SET CASES
+      // SET LEVEL (0-4)
       axios.get('/db.json', {
       }).then(response => {
         this.personInside = response.data.mainInfos.personInside
