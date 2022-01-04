@@ -1,7 +1,6 @@
 <template>
   <div
     class="home"
-    @keydown="console.log('test')"
   >
     <header>
       <picture>
@@ -65,7 +64,6 @@
 </template>
 
 <script>
-// @ is an alias to /src
 import Caution from '@/components/Caution.vue'
 import Usefull from '@/components/Usefull.vue'
 import axios from 'axios'
