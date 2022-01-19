@@ -43,7 +43,7 @@
         </div>
         <div
           class="popupValid"
-          @click="updateDB('mainInfos', { personInside: personInside, incidencePlageForEachLevel: plagePerLevel }); popupHeader = false; popup = false;setCasesAndRisk()"
+          @click="updateJSON(); popupHeader = false; popup = false;setCasesAndRisk()"
         >
           Confirmer
         </div>
@@ -76,7 +76,7 @@
         </div>
         <div
           class="popupValid"
-          @click="updateDB('cautions', { data: cautions }); popupCautions.state = false; popup = false"
+          @click="updateJSON(); popupCautions.state = false; popup = false"
         >
           Confirmer
         </div>
@@ -140,7 +140,7 @@
         </div>
         <div
           class="popupValid"
-          @click="updateDB('usefulls', { data: usefulls }); popupUsefulls.state = false; popup = false"
+          @click="updateJSON(); popupUsefulls.state = false; popup = false"
         >
           Confirmer
         </div>
@@ -176,7 +176,7 @@
         </div>
         <div
           class="popupValid"
-          @click="addNewItem('usefulls'); popupAddUsefull.state = false; popup = false"
+          @click="updateJSON('addNew', { target: 'usefulls' }); popupAddUsefull.state = false; popup = false"
         >
           Confirmer
         </div>
@@ -200,7 +200,6 @@
           id="popupAddCautionLink"
           v-model="popupAddCaution.levelRequired"
           type="number"
-          placeholder="1"
         >
         <div
           class="simpleFlex radioCenter"
@@ -222,7 +221,7 @@
         </div>
         <div
           class="popupValid"
-          @click="addNewItem('cautions'); popupAddCaution.state = false; popup = false"
+          @click="updateJSON('addNew', { target: 'cautions' }); popupAddCaution.state = false; popup = false"
         >
           Confirmer
         </div>
@@ -261,7 +260,9 @@
     >
       <b>{{ risk }}</b> Risque de transmission dans l'agence
     </p>
-    <h2>Précautions à observer</h2>
+    <h2>
+      Précautions à observer
+    </h2>
     <div
       v-for="(caution, i) in cautions"
       :key="i"
@@ -269,12 +270,12 @@
     >
       <span
         class="removeButton"
-        @click="removeItem(i, cautions, 'cautions')"
+        @click="updateJSON('remove', { key: i, target: 'cautions' })"
       >
         x
       </span>
       <Caution
-        :class="{ invisibleItem: caution.levelRequired > level }"
+        :class="{ invisibleItem: !showCaution(caution.levelRequired) }"
         :icon="caution.icon"
         :desc="caution.desc"
         @click="setupCautionPopup(i); popup = true"
@@ -296,7 +297,7 @@
     >
       <span
         class="removeButton"
-        @click="removeItem(i, usefulls, 'usefulls')"
+        @click="updateJSON('remove', { key: i, target: 'usefulls' })"
       >
         x
       </span>
@@ -358,7 +359,7 @@ export default {
       warningDisplay: false,
       personInside: 0,
       plagePerLevel: [0, 0, 0],
-      popup: true,
+      popup: false, // set to true if popupPassword.state is true
       popupHeader: false,
       popupAddUsefull: {
         state: false,
@@ -368,7 +369,7 @@ export default {
       popupAddCaution: {
         state: false,
         desc: null,
-        levelRequired: null,
+        levelRequired: 1,
         icon: null
       },
       popupCautions: {
@@ -376,13 +377,14 @@ export default {
         id: null
       },
       popupPassword: {
-        state: true,
+        state: false,
         text: 'Mot de passe :'
       },
       popupUsefulls: {
         state: false,
         id: null
-      }
+      },
+      rate: null
     }
   },
   computed: {
@@ -410,65 +412,40 @@ export default {
     }
   },
   mounted () {
+    window.location.href === 'http://localhost:8080/admin' ? this.functionURL = 'http://localhost:9090/.netlify/functions/' : this.functionURL = '/.netlify/functions/'
+    this.fetchAPI()
     this.jsonGet()
-    this.getCovidApi()
   },
   methods: {
-    checkPassword () {
-      axios.get('/password.php?password=' + this.password)
-        .then((e) => {
-          if (e.data === 'ok') {
-            this.popupPassword.state = false
-            this.popup = false
-          } else {
-            this.password = ''
-            this.popupPassword.text = 'Mot de passe incorrect, essayez à nouveau :'
-          }
-        })
-    },
-    addNewItem (target) {
-      if (target === 'usefulls') {
-        this.fullData.usefulls.data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
-        axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
-          .catch(function (e) {
-            console.log(e.response)
-          })
-      } else if (target === 'cautions') {
-        this.fullData.cautions.data.push({ desc: this.popupAddCaution.desc, levelRequired: this.popupAddCaution.levelRequired, icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
-        axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
-          .catch(function (e) {
-            console.log(e.response)
-          })
+    // updateJSON('remove', { key: i, target: 'cautions' })
+    updateJSON (action, data) {
+      if (action === 'remove') {
+        if (data.target === 'cautions') {
+          this.fullData.cautions.data.splice([data.key], 1)
+        } else if (data.target === 'usefulls') {
+          this.fullData.usefulls.data.splice([data.key], 1)
+        }
+      } else if (action === 'addNew') {
+        if (data.target === 'cautions') {
+          this.fullData.cautions.data.push({ desc: this.popupAddCaution.desc, levelRequired: this.popupAddCaution.levelRequired, icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
+        } else if (data.target === 'usefulls') {
+          this.fullData.usefulls.data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
+        }
       }
+
+      axios.get(this.functionURL + 'uploadJSON?password=' + this.password + '&newData=' + JSON.stringify(this.fullData), {
+      }).then(response => {
+        console.log('s3 Updated')
+      }).catch(e => {
+        console.log(e)
+      })
     },
-    removeItem (id, data, target) {
-      console.log(id)
-      console.log(data)
-      console.log(target)
+    setupNewItem (target) {
       if (target === 'cautions') {
-        data.splice(id, 1)
-        this.fullData.cautions = { data: data }
+        this.popupAddCaution.state = true
       } else if (target === 'usefulls') {
-        data.splice(id, 1)
-        this.fullData.usefulls = { data: data }
+        this.popupAddUsefull.state = true
       }
-      axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
-        .catch(function (e) {
-          console.log(e.response)
-        })
-    },
-    updateDB (target, data) {
-      if (target === 'mainInfos') {
-        this.fullData.mainInfos = data
-      } else if (target === 'cautions') {
-        this.fullData.cautions = data
-      } else if (target === 'usefulls') {
-        this.fullData.usefulls = data
-      }
-      axios.get('/jsonEditer.php?password=' + this.password + '&data=' + JSON.stringify(this.fullData))
-        .catch(function (e) {
-          console.log(e)
-        })
     },
     setupCautionPopup (i) {
       this.popupCautions.id = i
@@ -478,28 +455,45 @@ export default {
       this.popupUsefulls.id = i
       this.popupUsefulls.state = true
     },
-    setupNewItem (target) {
-      if (target === 'cautions') {
-        this.popupAddCaution.state = true
-      } else if (target === 'usefulls') {
-        this.popupAddUsefull.state = true
-      }
-    },
-    jsonGet () {
-      // GET CAUTIONS (icon + desc)
-      // GET USEFULLS (desc + link)
-      axios.get('/db.json', {
+    checkPassword () {
+      axios.get(this.functionURL + 'password?password=' + this.password, {
       }).then(response => {
-        this.fullData = response.data
-        this.cautions = response.data.cautions.data
-        this.usefulls = response.data.usefulls.data
+        if (response.data === true) {
+          this.popupPassword.state = false
+          this.popup = false
+        } else if (response.data === false) {
+          this.password = ''
+          this.popupPassword.text = 'Mot de passe incorrect, essayez à nouveau :'
+        }
       }).catch(e => {
         console.log(e)
       })
     },
-    getCovidApi () {
-      // COVID STATS FOR "Aube"
-      // GET DATE -7 days
+    showCaution (x) {
+      if (this.level === 1 && x === 1) {
+        return true
+      } else if (this.level === 2 && x <= 2) {
+        return true
+      } else if (this.level === 3 && (x === 1 || x === 3)) {
+        return true
+      } else if (this.level === 4 && x === 4) {
+        return true
+      }
+    },
+    jsonGet () {
+      // GET USEFULLS (desc + link) & CAUTIONS (icon + desc)
+      axios.get(this.functionURL + 'getJSON', {
+      }).then(response => {
+        this.fullData = JSON.parse(response.data.Body)
+        this.cautions = this.fullData.cautions.data
+        this.usefulls = this.fullData.usefulls.data
+        this.personInside = this.fullData.mainInfos.personInside
+        this.rate = this.fullData.mainInfos.incidencePlageForEachLevel
+      }).catch(e => {
+        console.log(e)
+      })
+    },
+    fetchAPI () {
       var date = new Date()
       date.setDate(date.getDate() - 7)
       const formatDate = (date) => {
@@ -507,32 +501,12 @@ export default {
         return formattedDate
       }
       const lastWeek = formatDate(date)
-      axios.get('/quarry.php?link=' + 'https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
-        headers: { 'Access-Control-Allow-Origin': '*', crossDomain: true }
+      axios.get(this.functionURL + 'fetchAPI?targetedDate=' + lastWeek, {
       }).then(response => {
-        if (response.data.toString().startsWith('<?php')) {
-          axios.get('/db.json', {
-          }).then(response => {
-            this.covid = response.data.covid[0]
-            this.setCasesAndRisk()
-            this.warningDisplay = true
-          }).catch(e => {
-            console.log(e)
-          })
-        } else {
-          this.covid = response.data[9]
-          this.setCasesAndRisk()
-        }
+        this.covid = response.data.data[9]
+        this.setCasesAndRisk()
       }).catch(e => {
         console.log(e)
-        axios.get('/db.json', {
-        }).then(response => {
-          this.covid = response.data.covid[0]
-          this.setCasesAndRisk()
-          this.warningDisplay = true
-        }).catch(e => {
-          console.log(e)
-        })
       })
     },
     // USEFULLS SPOILER
@@ -548,7 +522,7 @@ export default {
     // CALC CASES & RISK
     setCasesAndRisk () {
       // '.pos' = Number of people declared positive (D-3 date of sampling)
-      // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)
+      // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)  !!
       // v2 = N in Aube
 
       const v1 = this.covid.pos_7j * 2 // corrected: *2
@@ -558,33 +532,27 @@ export default {
       this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
 
       // SET LEVEL (0-4)
-      axios.get('/db.json', {
-      }).then(response => {
-        this.personInside = response.data.mainInfos.personInside
-        // i = cases & N = peoples
-        const i = ((v1 * 100000) / v2) * 2
-        const N = this.personInside
-        const mult = (1 - i / 100000) ** N
-        const riskCalc = Math.round((1 - mult) * 1000) / 10
-        this.risk = riskCalc + '%'
-        // SET LEVEL
-        this.plagePerLevel = response.data.mainInfos.incidencePlageForEachLevel
-        if (casesCalc < this.plagePerLevel[0]) {
-          this.level = 1
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
-        } else if (casesCalc >= this.plagePerLevel[0] && casesCalc < this.plagePerLevel[1]) {
-          this.level = 2
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
-        } else if (casesCalc >= this.plagePerLevel[1] && casesCalc < this.plagePerLevel[2]) {
-          this.level = 3
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
-        } else if (casesCalc >= this.plagePerLevel[2]) {
-          this.level = 4
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
-        }
-      }).catch(e => {
-        console.log(e)
-      })
+      // i = cases & N = peoples
+      const i = ((v1 * 100000) / v2) * 2
+      const N = this.personInside
+      const mult = (1 - i / 100000) ** N
+      const riskCalc = Math.round((1 - mult) * 1000) / 10
+      this.risk = riskCalc + '%'
+      // SET LEVEL
+      const rate = this.rate
+      if (casesCalc < rate[0]) {
+        this.level = 1
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
+      } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
+        this.level = 2
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
+      } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
+        this.level = 3
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
+      } else if (casesCalc >= rate[2]) {
+        this.level = 4
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
+      }
     }
   }
 }

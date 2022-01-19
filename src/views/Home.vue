@@ -35,7 +35,7 @@
     </h2>
     <Caution
       v-for="(caution, i) in cautions"
-      v-show="caution.levelRequired <= level"
+      v-show="showCaution(caution.levelRequired)"
       :key="i"
       :icon="caution.icon"
       :desc="caution.desc"
@@ -76,6 +76,7 @@ export default {
   },
   data () {
     return {
+      functionURL: '/.netlify/functions/',
       level: 1,
       cautions: [],
       usefulls: [],
@@ -84,7 +85,8 @@ export default {
       risk: '...',
       usefullsSpoiler: true,
       warningDisplay: false,
-      personInside: null
+      personInside: null,
+      rate: null
     }
   },
   computed: {
@@ -103,26 +105,13 @@ export default {
     }
   },
   mounted () {
+    document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
+    window.location.href === 'http://localhost:8080/' ? this.functionURL = 'http://localhost:9090/.netlify/functions/' : this.functionURL = '/.netlify/functions/'
+    this.fetchAPI()
     this.jsonGet()
   },
   methods: {
-    jsonGet () {
-      // GET CAUTIONS (icon + desc)
-      axios.get('/db.json', {
-      }).then(response => {
-        this.cautions = response.data.cautions.data
-      }).catch(e => {
-        console.log(e)
-      })
-      // GET USEFULLS (desc + link)
-      axios.get('/db.json', {
-      }).then(response => {
-        this.usefulls = response.data.usefulls.data
-      }).catch(e => {
-        console.log(e)
-      })
-      // COVID STATS FOR "Aube"
-      // GET DATE -7 days
+    fetchAPI () {
       var date = new Date()
       date.setDate(date.getDate() - 7)
       const formatDate = (date) => {
@@ -130,32 +119,37 @@ export default {
         return formattedDate
       }
       const lastWeek = formatDate(date)
-      axios.get('/quarry.php?link=' + 'https://coronavirusapifr.herokuapp.com/data/departements-by-date/' + lastWeek, {
-        headers: { 'Access-Control-Allow-Origin': '*', crossDomain: true }
+      axios.get(this.functionURL + 'fetchAPI?targetedDate=' + lastWeek, {
       }).then(response => {
-        if (response.data.toString().startsWith('<?php')) {
-          axios.get('/db.json', {
-          }).then(response => {
-            this.covid = response.data.covid[0]
-            this.setCasesAndRisk()
-            this.warningDisplay = true
-          }).catch(e => {
-            console.log(e)
-          })
-        } else {
-          this.covid = response.data[9]
-          this.setCasesAndRisk()
-        }
+        this.covid = response.data.data[9]
+        this.setCasesAndRisk()
       }).catch(e => {
         console.log(e)
-        axios.get('/db.json', {
-        }).then(response => {
-          this.covid = response.data.covid[0]
-          this.setCasesAndRisk()
-          this.warningDisplay = true
-        }).catch(e => {
-          console.log(e)
-        })
+      })
+    },
+    showCaution (x) {
+      if (this.level === 1 && x === 1) {
+        return true
+      } else if (this.level === 2 && x <= 2) {
+        return true
+      } else if (this.level === 3 && (x === 1 || x === 3)) {
+        return true
+      } else if (this.level === 4 && x === 4) {
+        return true
+      }
+    },
+    jsonGet () {
+      // GET USEFULLS (desc + link) & CAUTIONS (icon + desc)
+      // GET USEFULLS (desc + link) & CAUTIONS (icon + desc)
+      axios.get(this.functionURL + 'getJSON', {
+      }).then(response => {
+        this.fullData = JSON.parse(response.data.Body)
+        this.cautions = this.fullData.cautions.data
+        this.usefulls = this.fullData.usefulls.data
+        this.personInside = this.fullData.mainInfos.personInside
+        this.rate = this.fullData.mainInfos.incidencePlageForEachLevel
+      }).catch(e => {
+        console.log(e)
       })
     },
     // USEFULLS SPOILER
@@ -181,33 +175,27 @@ export default {
       this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
 
       // SET LEVEL (0-4)
-      axios.get('/db.json', {
-      }).then(response => {
-        this.personInside = response.data.mainInfos.personInside
-        // i = cases & N = peoples
-        const i = ((v1 * 100000) / v2) * 2
-        const N = this.personInside
-        const mult = (1 - i / 100000) ** N
-        const riskCalc = Math.round((1 - mult) * 1000) / 10
-        this.risk = riskCalc + '%'
-        // SET LEVEL
-        const rate = response.data.mainInfos.incidencePlageForEachLevel
-        if (casesCalc < rate[0]) {
-          this.level = 1
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
-        } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
-          this.level = 2
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
-        } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
-          this.level = 3
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
-        } else if (casesCalc >= rate[2]) {
-          this.level = 4
-          document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
-        }
-      }).catch(e => {
-        console.log(e)
-      })
+      // i = cases & N = peoples
+      const i = ((v1 * 100000) / v2) * 2
+      const N = this.personInside
+      const mult = (1 - i / 100000) ** N
+      const riskCalc = Math.round((1 - mult) * 1000) / 10
+      this.risk = riskCalc + '%'
+      // SET LEVEL
+      const rate = this.rate
+      if (casesCalc < rate[0]) {
+        this.level = 1
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
+      } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
+        this.level = 2
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
+      } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
+        this.level = 3
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
+      } else if (casesCalc >= rate[2]) {
+        this.level = 4
+        document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
+      }
     }
   }
 }
@@ -223,6 +211,8 @@ export default {
   .tacometer {
     margin: 80px 0 20px 0;
     height: 217.15px;
+    width: 100%;
+    max-width: 305.5px;
   }
   h2 {
     margin-top: 60px;
