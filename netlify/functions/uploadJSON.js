@@ -8,7 +8,7 @@ exports.handler = async (event, context) => {
   const newData = event.queryStringParameters.newData
   const password = event.queryStringParameters.password.toString()
   var isPasswordOk = false
-  password === '123' ? isPasswordOk = true : isPasswordOk = false
+  password === process.env.ADMIN_PASSWORD ? isPasswordOk = true : isPasswordOk = false
   if (!isPasswordOk) {
     return
   }

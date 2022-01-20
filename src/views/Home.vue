@@ -106,7 +106,6 @@ export default {
   },
   mounted () {
     document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
-    window.location.href === 'http://localhost:8080/' ? this.functionURL = 'http://localhost:9090/.netlify/functions/' : this.functionURL = '/.netlify/functions/'
     this.fetchAPI()
     this.jsonGet()
   },

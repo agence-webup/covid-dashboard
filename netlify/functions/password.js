@@ -3,7 +3,7 @@ exports.handler = function (event, context, callback) {
 
   var isPasswordOk = false
 
-  password === '123' ? isPasswordOk = true : isPasswordOk = false
+  password === process.env.ADMIN_PASSWORD ? isPasswordOk = true : isPasswordOk = false
 
   console.log(isPasswordOk)
 

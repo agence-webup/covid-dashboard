@@ -1,2 +1,5 @@
-[dev]
-	functionsPort = 9090
+[[redirects]]
+  # SPA only
+  from = "/*"
+  to = "/__app.html"
+  status = 200

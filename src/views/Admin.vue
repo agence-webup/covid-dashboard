@@ -349,6 +349,7 @@ export default {
         'Reunion', 'Salon', 'Teletravail'
       ],
       fullData: null,
+      functionURL: '/.netlify/functions/',
       level: 1,
       cautions: [],
       usefulls: [],
@@ -359,7 +360,7 @@ export default {
       warningDisplay: false,
       personInside: 0,
       plagePerLevel: [0, 0, 0],
-      popup: false, // set to true if popupPassword.state is true
+      popup: true,
       popupHeader: false,
       popupAddUsefull: {
         state: false,
@@ -377,7 +378,7 @@ export default {
         id: null
       },
       popupPassword: {
-        state: false,
+        state: true,
         text: 'Mot de passe :'
       },
       popupUsefulls: {
@@ -412,7 +413,6 @@ export default {
     }
   },
   mounted () {
-    window.location.href === 'http://localhost:8080/admin' ? this.functionURL = 'http://localhost:9090/.netlify/functions/' : this.functionURL = '/.netlify/functions/'
     this.fetchAPI()
     this.jsonGet()
   },
