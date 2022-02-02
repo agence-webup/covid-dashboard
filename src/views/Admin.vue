@@ -35,13 +35,13 @@
       <div class="popupButton">
         <div
           class="popupCancel"
-          @click="level = fullData.mainInfos.level;popupHeader = false; popup = false"
+          @click="level = fullData.mainInfos.level;personInside = fullData.mainInfos.personInside;popupHeader = false; popup = false"
         >
           Annuler
         </div>
         <div
           class="popupValid"
-          @click="fullData.mainInfos.level = parseInt(level);updateJSON(); popupHeader = false; popup = false;setCasesAndRisk()"
+          @click="fullData.mainInfos.level = parseInt(level);fullData.mainInfos.personInside = personInside;updateJSON(); popupHeader = false; popup = false;setCasesAndRisk()"
         >
           Confirmer
         </div>
@@ -412,9 +412,6 @@ export default {
   mounted () {
     this.fetchAPI()
     this.jsonGet()
-    setInterval(() => {
-      document.title = this.level
-    }, 100)
   },
   methods: {
     // updateJSON('remove', { key: i, target: 'cautions' })
@@ -433,9 +430,9 @@ export default {
         }
       }
 
-      this.fullData.level = this.level
       axios.get(this.functionURL + 'uploadJSON?password=' + this.password + '&newData=' + JSON.stringify(this.fullData), {
       }).then(response => {
+        this.jsonGet()
         console.log('s3 Updated')
       }).catch(e => {
         console.log(e)
