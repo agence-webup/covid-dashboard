@@ -528,7 +528,6 @@ export default {
 
       const v1 = this.covid.pos_7j * 2 // corrected: *2
       const v2 = 310000
-
       const casesCalc = (v1 * 100000) / v2
       this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
 
