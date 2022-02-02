@@ -83,8 +83,7 @@ export default {
       risk: '...',
       usefullsSpoiler: true,
       warningDisplay: false,
-      personInside: null,
-      rate: null
+      personInside: null
     }
   },
   computed: {
@@ -141,10 +140,10 @@ export default {
       axios.get(this.functionURL + 'getJSON', {
       }).then(response => {
         this.fullData = JSON.parse(response.data.Body)
+        this.level = this.fullData.mainInfos.level
         this.cautions = this.fullData.cautions.data
         this.usefulls = this.fullData.usefulls.data
         this.personInside = this.fullData.mainInfos.personInside
-        this.level = this.fullData.mainInfos.level
       }).catch(e => {
         console.log(e)
       })

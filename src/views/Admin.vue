@@ -41,7 +41,7 @@
         </div>
         <div
           class="popupValid"
-          @click="fullData.mainInfos.level = level;updateJSON(); popupHeader = false; popup = false;setCasesAndRisk()"
+          @click="fullData.mainInfos.level = parseInt(level);updateJSON(); popupHeader = false; popup = false;setCasesAndRisk()"
         >
           Confirmer
         </div>
