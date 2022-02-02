@@ -12,38 +12,36 @@
           type="number"
           min="1"
         >
-        <label for="popupLevel1">Niveau 1 max (taux d'incidence) :</label>
-        <input
-          id="popupLevel1"
-          v-model="plagePerLevel[0]"
-          type="number"
-          min="1"
-        >
-        <label for="popupLevel2">Niveau 2 max :</label>
-        <input
-          id="popupLevel2"
-          v-model="plagePerLevel[1]"
-          type="number"
-          min="1"
-        >
-        <label for="popupLevel3">Niveau 3 max :</label>
-        <input
+        <label for="popupLevel3">Niveau actuel :</label>
+        <select
           id="popupLevel3"
-          v-model="plagePerLevel[2]"
-          type="number"
-          min="1"
+          v-model="level"
+          name="pets"
         >
+          <option value="1">
+            1
+          </option>
+          <option value="2">
+            2
+          </option>
+          <option value="3">
+            3
+          </option>
+          <option value="4">
+            4
+          </option>
+        </select>
       </div>
       <div class="popupButton">
         <div
           class="popupCancel"
-          @click="popupHeader = false; popup = false"
+          @click="level = fullData.mainInfos.level;popupHeader = false; popup = false"
         >
           Annuler
         </div>
         <div
           class="popupValid"
-          @click="updateJSON(); popupHeader = false; popup = false;setCasesAndRisk()"
+          @click="fullData.mainInfos.level = level;updateJSON(); popupHeader = false; popup = false;setCasesAndRisk()"
         >
           Confirmer
         </div>
@@ -384,8 +382,7 @@ export default {
       popupUsefulls: {
         state: false,
         id: null
-      },
-      rate: null
+      }
     }
   },
   computed: {
@@ -415,6 +412,9 @@ export default {
   mounted () {
     this.fetchAPI()
     this.jsonGet()
+    setInterval(() => {
+      document.title = this.level
+    }, 100)
   },
   methods: {
     // updateJSON('remove', { key: i, target: 'cautions' })
@@ -433,6 +433,7 @@ export default {
         }
       }
 
+      this.fullData.level = this.level
       axios.get(this.functionURL + 'uploadJSON?password=' + this.password + '&newData=' + JSON.stringify(this.fullData), {
       }).then(response => {
         console.log('s3 Updated')
@@ -485,10 +486,10 @@ export default {
       axios.get(this.functionURL + 'getJSON', {
       }).then(response => {
         this.fullData = JSON.parse(response.data.Body)
+        this.level = this.fullData.mainInfos.level
         this.cautions = this.fullData.cautions.data
         this.usefulls = this.fullData.usefulls.data
         this.personInside = this.fullData.mainInfos.personInside
-        this.rate = this.fullData.mainInfos.incidencePlageForEachLevel
       }).catch(e => {
         console.log(e)
       })
@@ -538,19 +539,14 @@ export default {
       const mult = (1 - i / 100000) ** N
       const riskCalc = Math.round((1 - mult) * 1000) / 10
       this.risk = riskCalc + '%'
-      // SET LEVEL
-      const rate = this.rate
-      if (casesCalc < rate[0]) {
-        this.level = 1
+      // SET FAVICON
+      if (this.level === 1) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
-      } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
-        this.level = 2
+      } else if (this.level === 2) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
-      } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
-        this.level = 3
+      } else if (this.level === 3) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
-      } else if (casesCalc >= rate[2]) {
-        this.level = 4
+      } else if (this.level === 4) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
       }
     }

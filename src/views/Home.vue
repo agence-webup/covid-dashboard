@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="home"
-  >
+  <div class="home">
     <header>
       <picture>
         <source
@@ -146,7 +144,7 @@ export default {
         this.cautions = this.fullData.cautions.data
         this.usefulls = this.fullData.usefulls.data
         this.personInside = this.fullData.mainInfos.personInside
-        this.rate = this.fullData.mainInfos.incidencePlageForEachLevel
+        this.level = this.fullData.mainInfos.level
       }).catch(e => {
         console.log(e)
       })
@@ -180,19 +178,14 @@ export default {
       const mult = (1 - i / 100000) ** N
       const riskCalc = Math.round((1 - mult) * 1000) / 10
       this.risk = riskCalc + '%'
-      // SET LEVEL
-      const rate = this.rate
-      if (casesCalc < rate[0]) {
-        this.level = 1
+      // SET FAVICON
+      if (this.level === 1) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/1.svg'
-      } else if (casesCalc >= rate[0] && casesCalc < rate[1]) {
-        this.level = 2
+      } else if (this.level === 2) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/2.svg'
-      } else if (casesCalc >= rate[1] && casesCalc < rate[2]) {
-        this.level = 3
+      } else if (this.level === 3) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/3.svg'
-      } else if (casesCalc >= rate[2]) {
-        this.level = 4
+      } else if (this.level === 4) {
         document.querySelector("link[rel*='icon']").href = '/assets/Desktop/Jauge/4.svg'
       }
     }
