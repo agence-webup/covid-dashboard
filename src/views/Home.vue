@@ -16,8 +16,9 @@
         <h1>Niveau d’alerte lié à l’épidémie de Covid-19</h1>
         <span>{{ level }} / 4</span>
         <p>
-          Il y a {{ risk }} de risques que l’un de nous soit infecté
-          <br>
+          Il existe {{ risk }} de risques que l’un de nous soit infecté (en prenant {{ personInside }} personnes à l'agence pour le calcul)
+        </p>
+        <p>
           Taux d’incidence dans l’Aube : {{ cases }} / 100 000
         </p>
       </div>
@@ -164,7 +165,7 @@ export default {
       // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)  !!
       // v2 = N in Aube
 
-      const v1 = this.covid.pos_7j * 2 // corrected: *2
+      const v1 = this.covid.pos_7j // corrected: *2
       const v2 = 310000
 
       const casesCalc = (v1 * 100000) / v2
@@ -172,7 +173,7 @@ export default {
 
       // SET LEVEL (0-4)
       // i = cases & N = peoples
-      const i = ((v1 * 100000) / v2) * 2
+      const i = ((v1 * 100000) / v2) * 2 // corrected: *2
       const N = this.personInside
       const mult = (1 - i / 100000) ** N
       const riskCalc = Math.round((1 - mult) * 1000) / 10
@@ -316,7 +317,7 @@ export default {
           font-weight: 400;
           text-align: left;
           line-height: 19px;
-          margin: 0;
+          margin: 0.5rem 0;
         }
       }
     }
