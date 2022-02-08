@@ -312,19 +312,18 @@
     </h2>
     <div
       id="sort"
-      class="sort cf"
     >
       <div
         v-for="(caution, i) in cautions"
         :key="i"
-        class="simpleFlex sort-item"
+        class="simpleFlex"
         :style="'order: ' + caution.order"
       >
         <span
           class="removeButton"
           @click="updateJSON('remove', { key: i, target: 'cautions' })"
         >
-          x
+          {{ caution.order }}
         </span>
         <Caution
           :class="{ invisibleItem: !showCaution(parseInt(caution.levelRequired)) }"
@@ -383,7 +382,6 @@ import Caution from '@/components/Caution.vue'
 import AdminUsefull from '@/components/AdminUsefull.vue'
 import Radio from '@/components/Radio.vue'
 import axios from 'axios'
-import Sortable from 'sortablejs'
 
 export default {
   name: 'Admin',
@@ -471,19 +469,11 @@ export default {
     this.jsonGet()
   },
   methods: {
-    reorder (oldIndex, newIndex) {
-      // move the item in the underlying array
-      this.cautions.splice(newIndex, 0, this.cautions.splice(oldIndex, 1)[0])
-      // update order property based on position in array
-      this.cautions.forEach(function (item, index) {
-        item.order = index
-      })
-      this.updateJSON()
-    },
     // updateJSON('remove', { key: i, target: 'cautions' })
     updateJSON (action, data) {
       if (action === 'remove') {
         if (data.target === 'cautions') {
+          this.popupCautions.id = null
           this.fullData.cautions.data.splice([data.key], 1)
         } else if (data.target === 'usefulls') {
           this.fullData.usefulls.data.splice([data.key], 1)
@@ -505,6 +495,17 @@ export default {
       })
     },
     setupNewItem (target) {
+      this.popupAddUsefull = {
+        state: false,
+        desc: null,
+        link: null
+      }
+      this.popupAddCaution = {
+        state: false,
+        desc: null,
+        levelRequired: 1,
+        icon: null
+      }
       if (target === 'cautions') {
         this.popupAddCaution.state = true
       } else if (target === 'usefulls') {
@@ -553,16 +554,6 @@ export default {
         this.cautions = this.fullData.cautions.data
         this.usefulls = this.fullData.usefulls.data
         this.personInside = this.fullData.mainInfos.personInside
-        var vm = this
-        Sortable.create(document.getElementById('sort'), {
-          draggable: '.sort-item',
-          ghostClass: 'sort-ghost',
-          animation: 80,
-          onUpdate: function (evt) {
-            console.log('dropped (Sortable)')
-            vm.reorder(evt.oldIndex, evt.newIndex)
-          }
-        })
       }).catch(e => {
         console.log(e)
       })
@@ -627,9 +618,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  .sort-ghost {
-    opacity: 0.3;
-    transition: all 0.7s ease-out;
+  #sort {
+    display: flex;
+    flex-direction: column;
   }
   .caution {
     &:hover {
@@ -810,10 +801,6 @@ export default {
     border-radius: 5px;
     cursor: pointer;
     user-select: none;
-  }
-  #sort {
-    display: flex;
-    flex-direction: column;
   }
   // PC
   @media screen and (min-width: 800px) {
