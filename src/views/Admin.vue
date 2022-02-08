@@ -323,7 +323,7 @@
           class="removeButton"
           @click="updateJSON('remove', { key: i, target: 'cautions' })"
         >
-          {{ caution.order }}
+          x
         </span>
         <Caution
           :class="{ invisibleItem: !showCaution(parseInt(caution.levelRequired)) }"
