@@ -32,13 +32,16 @@
     <h2 class="marginTop50">
       Précautions à observer
     </h2>
-    <Caution
-      v-for="(caution, i) in cautions"
-      v-show="showCaution(caution.levelRequired)"
-      :key="i"
-      :icon="caution.icon"
-      :desc="caution.desc"
-    />
+    <div id="sort">
+      <Caution
+        v-for="(caution, i) in cautions"
+        v-show="showCaution(caution.levelRequired)"
+        :key="i"
+        :icon="caution.icon"
+        :desc="caution.desc"
+        :style="'order: ' + caution.order"
+      />
+    </div>
     <h2
       id="dropDownTitle"
       @click="showUsefull()"
@@ -125,7 +128,7 @@ export default {
       })
     },
     showCaution (x) {
-      if (this.level === 1 && x === 1) {
+      if (this.level === 1 && (x === 0 || x === 1)) {
         return true
       } else if (this.level === 2 && x <= 2) {
         return true
@@ -261,6 +264,10 @@ export default {
   }
   .loadingText {
     margin-top: 40vh;
+  }
+  #sort {
+    display: flex;
+    flex-direction: column;
   }
   // PC
   @media screen and (min-width: 800px) {

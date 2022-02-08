@@ -16,7 +16,6 @@
         <select
           id="popupLevel3"
           v-model="level"
-          name="pets"
         >
           <option value="1">
             1
@@ -56,14 +55,49 @@
         class="popupContent"
         :style="popupCautionsStyle"
       >
+        <span>
+          Conditions d'affichage :<br>
+          lvl.1 => 1 & 1 uniquement<br>
+          lvl.2 => 2<br>
+          lvl.3 => 3 & 1<br>
+          lvl.4 => 4<br>
+        </span>
         <label for="popupMinLevelRequired">Niveau minimum requis :</label>
-        <input
+        <select
           id="popupMinLevelRequired"
           v-model="cautions[popupCautions.id].levelRequired"
-          type="number"
-          min="1"
-          max="4"
         >
+          <option
+            :disabled="cautions[popupCautions.id].levelRequired === 0"
+            value="0"
+          >
+            1 uniquement
+          </option>
+          <option
+            :disabled="cautions[popupCautions.id].levelRequired === 1"
+            value="1"
+          >
+            1
+          </option>
+          <option
+            :disabled="cautions[popupCautions.id].levelRequired === 2"
+            value="2"
+          >
+            2
+          </option>
+          <option
+            :disabled="cautions[popupCautions.id].levelRequired === 3"
+            value="3"
+          >
+            3
+          </option>
+          <option
+            :disabled="cautions[popupCautions.id].levelRequired === 4"
+            value="4"
+          >
+            4
+          </option>
+        </select>
       </div>
       <div class="popupButton">
         <div
@@ -194,11 +228,26 @@
           placeholder="lorem ipsum dolor..."
         />
         <label for="popupAddCautionLink">Niveau minimum requis :</label>
-        <input
+        <select
           id="popupAddCautionLink"
           v-model="popupAddCaution.levelRequired"
-          type="number"
         >
+          <option value="0">
+            1 uniquement
+          </option>
+          <option value="1">
+            1
+          </option>
+          <option value="2">
+            2
+          </option>
+          <option value="3">
+            3
+          </option>
+          <option value="4">
+            4
+          </option>
+        </select>
         <div
           class="simpleFlex radioCenter"
         >
@@ -262,22 +311,28 @@
       Précautions à observer
     </h2>
     <div
-      v-for="(caution, i) in cautions"
-      :key="i"
-      class="simpleFlex"
+      id="sort"
+      class="sort cf"
     >
-      <span
-        class="removeButton"
-        @click="updateJSON('remove', { key: i, target: 'cautions' })"
+      <div
+        v-for="(caution, i) in cautions"
+        :key="i"
+        class="simpleFlex sort-item"
+        :style="'order: ' + caution.order"
       >
-        x
-      </span>
-      <Caution
-        :class="{ invisibleItem: !showCaution(caution.levelRequired) }"
-        :icon="caution.icon"
-        :desc="caution.desc"
-        @click="setupCautionPopup(i); popup = true"
-      />
+        <span
+          class="removeButton"
+          @click="updateJSON('remove', { key: i, target: 'cautions' })"
+        >
+          x
+        </span>
+        <Caution
+          :class="{ invisibleItem: !showCaution(parseInt(caution.levelRequired)) }"
+          :icon="caution.icon"
+          :desc="caution.desc"
+          @click="setupCautionPopup(i); popup = true"
+        />
+      </div>
     </div>
     <Caution
       id="addCaution"
@@ -322,13 +377,13 @@
     <p>La page Admin n'est pas utilisable en local. Impossible d'obtenir les statistiques. Les chiffres utilisés sont donc des exemples à ne pas prendre en compte.</p>
   </span>
 </template>
-
 <script>
 // @ is an alias to /src
 import Caution from '@/components/Caution.vue'
 import AdminUsefull from '@/components/AdminUsefull.vue'
 import Radio from '@/components/Radio.vue'
 import axios from 'axios'
+import Sortable from 'sortablejs'
 
 export default {
   name: 'Admin',
@@ -344,7 +399,9 @@ export default {
         'Clients', 'Contact', 'Cuisine',
         'Discord', 'Fenetres', 'FermetureSalon',
         'Fete', 'Mains', 'Masque',
-        'Reunion', 'Salon', 'Teletravail'
+        'Reunion', 'Salon', 'Teletravail',
+        'Client', 'FermetureCuisine', 'FeteInterdit',
+        'Sorties', 'Ventilation'
       ],
       fullData: null,
       functionURL: '/.netlify/functions/',
@@ -414,6 +471,15 @@ export default {
     this.jsonGet()
   },
   methods: {
+    reorder (oldIndex, newIndex) {
+      // move the item in the underlying array
+      this.cautions.splice(newIndex, 0, this.cautions.splice(oldIndex, 1)[0])
+      // update order property based on position in array
+      this.cautions.forEach(function (item, index) {
+        item.order = index
+      })
+      this.updateJSON()
+    },
     // updateJSON('remove', { key: i, target: 'cautions' })
     updateJSON (action, data) {
       if (action === 'remove') {
@@ -424,7 +490,7 @@ export default {
         }
       } else if (action === 'addNew') {
         if (data.target === 'cautions') {
-          this.fullData.cautions.data.push({ desc: this.popupAddCaution.desc, levelRequired: this.popupAddCaution.levelRequired, icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
+          this.fullData.cautions.data.push({ order: this.fullData.cautions.data.length, desc: this.popupAddCaution.desc, levelRequired: parseInt(this.popupAddCaution.levelRequired), icon: './assets/Precautions/Icones/' + this.popupAddCaution.icon + '.svg' })
         } else if (data.target === 'usefulls') {
           this.fullData.usefulls.data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
         }
@@ -468,7 +534,7 @@ export default {
       })
     },
     showCaution (x) {
-      if (this.level === 1 && x === 1) {
+      if (this.level === 1 && (x === 0 || x === 1)) {
         return true
       } else if (this.level === 2 && x <= 2) {
         return true
@@ -487,6 +553,16 @@ export default {
         this.cautions = this.fullData.cautions.data
         this.usefulls = this.fullData.usefulls.data
         this.personInside = this.fullData.mainInfos.personInside
+        var vm = this
+        Sortable.create(document.getElementById('sort'), {
+          draggable: '.sort-item',
+          ghostClass: 'sort-ghost',
+          animation: 80,
+          onUpdate: function (evt) {
+            console.log('dropped (Sortable)')
+            vm.reorder(evt.oldIndex, evt.newIndex)
+          }
+        })
       }).catch(e => {
         console.log(e)
       })
@@ -523,7 +599,7 @@ export default {
       // '.pos_7j' = Number of people declared positive over a week (D-3 date of sampling)  !!
       // v2 = N in Aube
 
-      const v1 = this.covid.pos_7j * 2 // corrected: *2
+      const v1 = this.covid.pos_7j // corrected: *2
       const v2 = 310000
       const casesCalc = (v1 * 100000) / v2
       this.cases = Math.round((casesCalc + Number.EPSILON) * 100) / 100
@@ -551,12 +627,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+  .sort-ghost {
+    opacity: 0.3;
+    transition: all 0.7s ease-out;
+  }
   .caution {
     &:hover {
-      box-shadow: gold 0 0 0 3px;
+      border-right: solid 3px orangered;
       opacity: 1;
       cursor: pointer;
-      border-radius: 5px;
     }
   }
   textarea {
@@ -564,7 +643,9 @@ export default {
     min-height: 100px;
   }
   header:hover {
-    box-shadow: gold 0 0 0 3px;
+    box-shadow: 3px 0 0 orangered;
+    border-top-right-radius: unset;
+    border-bottom-right-radius: unset;
     cursor: pointer;
   }
   .popupFrame {
@@ -703,6 +784,7 @@ export default {
   }
   .simpleFlex {
     display: flex;
+    user-select: none;
   }
   #popupAddCautionLink {
     margin: auto;
@@ -719,26 +801,34 @@ export default {
     flex: 100%;
   }
   .removeButton {
-    position: absolute;
-    transform: translateX(-15px) translateY(5px);
+    transform: translateX(-15px);
+    align-self: center;
+    height: fit-content;
     background-color: #FA5252;
     color: white;
     padding: 5px 11px 6px 11px;
     border-radius: 5px;
-    z-index: 1;
+    cursor: pointer;
+    user-select: none;
+  }
+  #sort {
+    display: flex;
+    flex-direction: column;
   }
   // PC
   @media screen and (min-width: 800px) {
     .removeButton {
-      position: absolute;
-      transform: translateX(-50px) translateY(25px);
+      transform: translateX(-30px);
+      align-self: center;
+      height: fit-content;
       background-color: #FA5252;
       color: white;
       padding: 5px 11px 6px 11px;
       border-radius: 5px;
+      cursor: pointer;
+      user-select: none;
       &:hover {
         background-color: #b63939;
-        cursor: pointer;
       }
     }
     #riskBanner {

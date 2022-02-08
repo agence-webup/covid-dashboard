@@ -44,6 +44,7 @@ export default {
     line-height: 24px;
     font-size: 16px;
     width: calc(100vw - 88px);
+    cursor: pointer;
     .desc {
       color: #4B4545;
       text-decoration: none;
@@ -61,8 +62,10 @@ export default {
       box-shadow: 0 6px 12px -12px #00000035;
       width: auto;
       &:hover {
-        box-shadow: gold 0 0 0 3px;
-        cursor: pointer;
+        box-shadow: 0 6px 12px -12px #00000035,
+                    3px 0 0 orangered;
+        border-top-right-radius: unset !important;
+        border-bottom-right-radius: unset !important;
         border-radius: 5px;
       }
     }
