@@ -315,9 +315,16 @@
     >
       <div
         v-for="(caution, i) in cautions"
+        :id="'caution-' + i"
         :key="i"
         class="simpleFlex"
-        :style="'order: ' + caution.order"
+        :style="'order: ' + caution.order + ';' + dragReady.style"
+        :draggable="dragReady.state"
+        @dragenter="dragEvent('enter', caution.order, i)"
+        @dragleave="dragEvent('leave', caution.order, i)"
+        @dragover.prevent
+        @dragstart="dragEvent('start', caution.order, i)"
+        @dragend="dragEvent('drop')"
       >
         <span
           class="removeButton"
@@ -437,6 +444,16 @@ export default {
       popupUsefulls: {
         state: false,
         id: null
+      },
+      dropTarget: {
+        from: null,
+        to: null,
+        idFrom: null,
+        idTo: null
+      },
+      dragReady: {
+        state: false,
+        style: ''
       }
     }
   },
@@ -469,6 +486,53 @@ export default {
     this.jsonGet()
   },
   methods: {
+    dragEvent (action, order, i) {
+      if (action === 'enter') {
+        this.dropTarget.to = order
+        this.dropTarget.idTo = i
+        document.getElementById('caution-' + i).style.backgroundColor = '#32cd3215'
+      } else if (action === 'start') {
+        this.dropTarget.from = order
+        this.dropTarget.idFrom = i
+        document.getElementById('caution-' + this.dropTarget.idFrom).style.opacity = '.15'
+      } else if (action === 'leave') {
+        document.getElementById('caution-' + i).style.backgroundColor = 'unset'
+      } else if (action === 'drop') {
+        document.getElementById('caution-' + this.dropTarget.idFrom).style.opacity = 'unset'
+        if (this.dropTarget.from !== this.dropTarget.to) {
+          // this.dropTarget.to--
+          // this.dropTarget.idTo--
+          if (this.cautions[this.dropTarget.idFrom].order < this.cautions[this.dropTarget.idTo].order) {
+            for (let i = 0; i < this.cautions.length; i++) {
+              if (this.cautions[i].order > this.cautions[this.dropTarget.idFrom].order && this.cautions[i].order <= this.cautions[this.dropTarget.idTo].order) {
+                // console.log(this.cautions[i].order + ' -> ' + (this.cautions[i].order - 1))
+                this.cautions[i].order--
+              }
+            }
+            // console.log(this.cautions[this.dropTarget.idFrom].order + ' -> ' + this.dropTarget.to)
+            this.cautions[this.dropTarget.idFrom].order = this.dropTarget.to
+          } else if (this.cautions[this.dropTarget.idFrom].order > this.cautions[this.dropTarget.idTo].order) {
+            for (let i = 0; i < this.cautions.length; i++) {
+              if (this.cautions[i].order < this.cautions[this.dropTarget.idFrom].order && this.cautions[i].order >= this.cautions[this.dropTarget.idTo].order) {
+                // console.log(this.cautions[i].order + ' -> ' + (this.cautions[i].order + 1))
+                this.cautions[i].order++
+              }
+            }
+            // console.log(this.cautions[this.dropTarget.idFrom].order + ' -> ' + this.dropTarget.to)
+            this.cautions[this.dropTarget.idFrom].order = this.dropTarget.to
+          }
+          this.dropTarget.from = null
+          this.dropTarget.to = null
+          // console.log('-----------------')
+          this.dragReady.state = false
+          this.dragReady.style = 'background-color: #DC143C10'
+          this.updateJSON()
+        }
+      }
+    },
+    log (str) {
+      console.log(str)
+    },
     // updateJSON('remove', { key: i, target: 'cautions' })
     updateJSON (action, data) {
       if (action === 'remove') {
@@ -484,6 +548,9 @@ export default {
         } else if (data.target === 'usefulls') {
           this.fullData.usefulls.data.push({ desc: this.popupAddUsefull.desc, link: this.popupAddUsefull.link })
         }
+      }
+      for (let i = 0; i < this.fullData.cautions.data.length; i++) {
+        this.fullData.cautions.data[i].levelRequired = parseInt(this.fullData.cautions.data[i].levelRequired)
       }
 
       axios.get(this.functionURL + 'uploadJSON?password=' + this.password + '&newData=' + JSON.stringify(this.fullData), {
@@ -537,7 +604,7 @@ export default {
     showCaution (x) {
       if (this.level === 1 && (x === 0 || x === 1)) {
         return true
-      } else if (this.level === 2 && x <= 2) {
+      } else if (this.level === 2 && (x === 1 || x === 2)) {
         return true
       } else if (this.level === 3 && (x === 1 || x === 3)) {
         return true
@@ -554,6 +621,24 @@ export default {
         this.cautions = this.fullData.cautions.data
         this.usefulls = this.fullData.usefulls.data
         this.personInside = this.fullData.mainInfos.personInside
+        this.cautions.sort(function (a, b) {
+          return a.order - b.order
+        })
+        for (let i = 0; i < this.cautions.length; i++) {
+          if (typeof this.cautions[i + 1] !== 'undefined') {
+            if (this.cautions[i].order < (this.cautions[i + 1].order - 1)) {
+              while (this.cautions[i].order < (this.cautions[i + 1].order - 1)) {
+                this.cautions[i + 1].order--
+              }
+            } else if (this.cautions[i].order === (this.cautions[i + 1].order)) {
+              while (this.cautions[i].order < (this.cautions[i + 1].order - 1)) {
+                this.cautions[i + 1].order++
+              }
+            }
+          }
+        }
+        this.dragReady.state = true
+        this.dragReady.style = ''
       }).catch(e => {
         console.log(e)
       })
@@ -618,6 +703,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+  .dragLoading {
+    background-color: red;
+  }
   #sort {
     display: flex;
     flex-direction: column;

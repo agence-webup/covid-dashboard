@@ -130,7 +130,7 @@ export default {
     showCaution (x) {
       if (this.level === 1 && (x === 0 || x === 1)) {
         return true
-      } else if (this.level === 2 && x <= 2) {
+      } else if (this.level === 2 && (x === 1 || x === 2)) {
         return true
       } else if (this.level === 3 && (x === 1 || x === 3)) {
         return true
