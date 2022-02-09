@@ -43,7 +43,6 @@ export default {
     word-wrap: break-word;
     line-height: 24px;
     font-size: 16px;
-    width: calc(100vw - 88px);
     cursor: pointer;
     .desc {
       color: #4B4545;
@@ -54,6 +53,7 @@ export default {
       color: #1862AB;
       overflow-wrap: break-word;
       word-wrap: break-word;
+      word-break: break-all;
     }
   }
   @media screen and (min-width: 800px) {

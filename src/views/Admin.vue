@@ -320,9 +320,7 @@
     <h2>
       Précautions à observer
     </h2>
-    <div
-      id="sort"
-    >
+    <div class="sort">
       <div
         v-for="(caution, i) in cautions"
         :id="'caution-' + i"
@@ -359,24 +357,26 @@
     <h2 id="dropDownTitle">
       Liens utiles
     </h2>
-    <div
-      v-for="(usefull, i) in usefulls"
-      :key="i"
-      class="simpleFlex"
-    >
-      <span
-        class="removeButton"
-        @click="updateJSON('remove', { key: i, target: 'usefulls' })"
+    <div class="sort">
+      <div
+        v-for="(usefull, i) in usefulls"
+        :key="i"
+        class="simpleFlex"
       >
-        x
-      </span>
-      <AdminUsefull
-        v-show="usefullsSpoiler"
-        :desc="usefull.desc"
-        :link="usefull.link"
-        class="adminUsefulls"
-        @click="setupUsefullsPopup(i); popup = true"
-      />
+        <span
+          class="removeButton"
+          @click="updateJSON('remove', { key: i, target: 'usefulls' })"
+        >
+          x
+        </span>
+        <AdminUsefull
+          v-show="usefullsSpoiler"
+          :desc="usefull.desc"
+          :link="usefull.link"
+          class="adminUsefulls"
+          @click="setupUsefullsPopup(i); popup = true"
+        />
+      </div>
     </div>
     <AdminUsefull
       id="addUsefull"
@@ -716,7 +716,7 @@ export default {
   .dragLoading {
     background-color: red;
   }
-  #sort {
+  .sort {
     display: flex;
     flex-direction: column;
   }
@@ -888,6 +888,8 @@ export default {
     align-items: center;
     margin-top: 25px;
     flex-wrap: wrap;
+    overflow-y: auto;
+    max-height: 30vh;
   }
   .adminUsefulls {
     flex: 100%;
