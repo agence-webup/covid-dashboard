@@ -508,6 +508,7 @@ export default {
       } else if (action === 'leave') {
         document.getElementById('caution-' + i).style.backgroundColor = 'unset'
       } else if (action === 'drop') {
+        document.getElementById('caution-' + this.dropTarget.idFrom).style.backgroundColor = 'unset'
         document.getElementById('caution-' + this.dropTarget.idFrom).style.opacity = 'unset'
         if (this.dropTarget.from !== this.dropTarget.to) {
           // this.dropTarget.to--
