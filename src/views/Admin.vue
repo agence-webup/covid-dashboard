@@ -52,16 +52,15 @@
       class="popupFrame"
     >
       <div
-        class="popupContent"
+        class="popupContent popupContent_textarea"
         :style="popupCautionsStyle"
       >
-        <span>
-          Conditions d'affichage :<br>
-          lvl.1 => 1 & 1 uniquement<br>
-          lvl.2 => 2<br>
-          lvl.3 => 3 & 1<br>
-          lvl.4 => 4<br>
-        </span>
+        <label for="popupEditCautionDesc">Texte :</label>
+        <textarea
+          id="popupEditCautionDesc"
+          v-model="cautions[popupCautions.id].desc"
+          placeholder="lorem ipsum dolor..."
+        />
         <label for="popupMinLevelRequired">Niveau minimum requis :</label>
         <select
           id="popupMinLevelRequired"
@@ -98,6 +97,17 @@
             4
           </option>
         </select>
+        <div
+          class="simpleFlex radioCenter"
+        >
+          <Radio
+            v-for="(icon, i) in icons"
+            :key="i"
+            :data="icon"
+            :selected="cautions[popupCautions.id].icon"
+            @click="cautions[popupCautions.id].icon = './assets/Precautions/Icones/' + icon + '.svg'"
+          />
+        </div>
       </div>
       <div class="popupButton">
         <div
@@ -865,10 +875,13 @@ export default {
     display: flex;
     user-select: none;
   }
-  #popupAddCautionLink {
+  #popupAddCautionLink, #popupMinLevelRequired {
     margin: auto;
     border: none;
     border-bottom: solid 1px #333;
+  }
+  #popupMinLevelRequired {
+    margin-top: 20px;
   }
   .radioCenter {
     justify-content: center;

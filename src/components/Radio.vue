@@ -5,6 +5,7 @@
       type="radio"
       :value="data"
       name="icone"
+      :checked="selected === './assets/Precautions/Icones/' + data + '.svg'"
     >
     <label :for="data">
       <img :src="'/assets/Precautions/Icones/' + data + '.svg'">
@@ -19,6 +20,10 @@ export default {
     data: {
       type: String,
       required: true
+    },
+    selected: {
+      type: String,
+      default: null
     }
   }
 }
